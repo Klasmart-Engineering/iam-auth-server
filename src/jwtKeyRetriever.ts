@@ -1,7 +1,6 @@
 import { SecretsManager } from "aws-sdk"
 
-const region = "ap-northeast-2"
-const client = new SecretsManager({ region });
+const client = new SecretsManager();
 
 export async function retrieveJWTKeys(secretName: string) {
     try {
@@ -35,5 +34,8 @@ export async function retrieveJWTKeys(secretName: string) {
             // We can't find the resource that you asked for.
             // Deal with the exception here, and/or rethrow at your discretion.
             throw err;
+        else {
+            throw err;
+        }
     }
 }

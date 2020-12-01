@@ -1,149 +1,74 @@
 import { sign, Secret, SignOptions } from "jsonwebtoken"
-import { readFileSync } from "fs"
 import { v5 } from "uuid"
 
 import jwksClient from "jwks-rsa"
 import { decode, JwtHeader, verify, VerifyErrors } from "jsonwebtoken"
 import { createHash } from "crypto"
-import { retrieveJWTKeys } from "./jwtKeyRetriever"
+import { JwtConfig } from "./jwtConfig"
 
 export const accessTokenDuration = Number(process.env.JWT_ACCESS_TOKEN_DURATION) || 15*60*1000
 export const refreshTokenDuration = Number(process.env.JWT_REFRESH_TOKEN_DURATION) || 14*24*60*60*1000
 export const httpsOnlyCookie = process.env.JWT_COOKIE_ALLOW_HTTP === undefined
 
-const issuer = process.env.JWT_ISSUER
 const domain = process.env.DOMAIN
-let config: { secretOrPrivateKey: Secret, accessTokenOptions: SignOptions, secretOrPublicKey: Secret, refreshTokenOptions: SignOptions }
 
+export class JwtService {
+    public static create(jwtConfig: JwtConfig) {
+        return new JwtService(jwtConfig)
+    }
 
-export function verifyAccessToken(encodedToken: string) {
-    return new Promise<any>((resolve, reject) => {
-        verify(
-            encodedToken,
-            config.secretOrPublicKey,
-            config.accessTokenOptions,
-            (err, decoded) => {
-                if (err) { reject(err); return }
-                if (decoded) { resolve(decoded); return }
-                reject("Unexpected error, token validation did not succeed but did not return an error")
-            }
-        )
-    })
-}
-export function verifyRefreshToken(encodedToken: string) {
-    return new Promise<any>((resolve, reject) => {
-        verify(
-            encodedToken,
-            config.secretOrPublicKey,
-            config.refreshTokenOptions,
-            (err, decoded) => {
-                if (err) { reject(err); return }
-                if (decoded) { resolve(decoded); return }
-                reject("Unexpected error, token validation did not succeed but did not return an error")
-            }
-        )
-    })
-}
-export function signAccessToken(token: IdToken) {
-    return signJWT(token, config.secretOrPrivateKey, config.accessTokenOptions)
-}
+    private config: JwtConfig;
+    public constructor(config: JwtConfig) {
+        this.config = config
+    }
 
-export function signRefreshToken(refreshToken: object) {
-    return signJWT(refreshToken, config.secretOrPrivateKey, config.refreshTokenOptions)
-}
-
-export async function signJWT(token: Object, secret: Secret, options: SignOptions) {
-    return new Promise<string>((resolve, reject) => {
-        sign(token, secret, options, (err, encoded) => {
-            if (encoded) {
-                resolve(encoded)
-            } else {
-                reject(err)
-            }
+    public verifyAccessToken(encodedToken: string) {
+        return new Promise<any>((resolve, reject) => {
+            verify(
+                encodedToken,
+                this.config.secretOrPublicKey,
+                this.config.accessTokenOptions,
+                (err, decoded) => {
+                    if (err) { reject(err); return }
+                    if (decoded) { resolve(decoded); return }
+                    reject("Unexpected error, token validation did not succeed but did not return an error")
+                }
+            )
         })
-    })
-}
-
-export async function jwtInit() {
-    let algorithm: string
-    let secretOrPrivateKey: Secret
-    let secretOrPublicKey: Secret
-
-    const awsSecretName = process.env.AWS_SECRET_NAME
-    if (awsSecretName) {
-        const keys = await retrieveJWTKeys(awsSecretName)
-        algorithm = keys?.algorithm
-        secretOrPrivateKey = keys?.privateKey
-        secretOrPublicKey = keys?.publicKey
-    }
-    else {
-        const algorithm = process.env.JWT_ALGORITHM
-
-        switch (algorithm) {
-            case "HS256":
-            case "HS384":
-            case "HS512":
-                if (process.env.JWT_PRIVATE_KEY || process.env.JWT_PRIVATE_KEY_FILENAME) {
-                    throw new Error(`JWT configuration error - can not use '${algorithm}' algorithm with private key, please set JWT_SECRET enviroment variable`)
-                }
-                if (process.env.JWT_SECRET) {
-                    secretOrPrivateKey = process.env.JWT_SECRET
-                    secretOrPublicKey = process.env.JWT_SECRET
-                }
-            case "RS256":
-            case "RS384":
-            case "RS512":
-            case "ES256":
-            case "ES384":
-            case "ES512":
-            case "PS256":
-            case "PS384":
-            case "PS512":
-                if (process.env.JWT_SECRET) {
-                    throw new Error(`JWT configuration error - can not use '${algorithm}' algorithm with jwt secret key, please set JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_FILENAME enviroment variable`)
-                }
-                if (process.env.JWT_PRIVATE_KEY && process.env.JWT_PRIVATE_KEY_FILENAME) {
-                    throw new Error(`JWT configuration error - please use either JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_FILENAME not both`)
-                }
-                if (process.env.JWT_PUBLIC_KEY_FILENAME && process.env.JWT_PUBLIC_KEY) {
-                    throw new Error(`JWT configuration error - please use either JWT_PUBLIC_KEY_FILENAME or JWT_PUBLIC_KEY not both`)
-                }
-                const privateKey = process.env.JWT_PRIVATE_KEY_FILENAME ? readFileSync(process.env.JWT_PRIVATE_KEY_FILENAME) : process.env.JWT_PRIVATE_KEY
-                if (!privateKey) {
-                    throw new Error(`JWT configuration error - please use either JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_FILENAME to specify private key`)
-                }
-                const publicKey = process.env.JWT_PUBLIC_KEY_FILENAME ? readFileSync(process.env.JWT_PUBLIC_KEY_FILENAME) : process.env.JWT_PUBLIC_KEY
-                if (!publicKey) {
-                    throw new Error(`JWT configuration error - please use either JWT_PUBLIC_KEY_FILENAME or JWT_PUBLIC_KEY to specify public key`)
-                }
-                secretOrPrivateKey = process.env.JWT_PRIVATE_KEY_PASSPHRASE
-                    ? { key: privateKey, passphrase: process.env.JWT_PRIVATE_KEY_PASSPHRASE }
-                    : privateKey
-                secretOrPublicKey = publicKey
-            default:
-                throw new Error("JWT Token not configured")
-        }
     }
 
-    const accessTokenOptions = {
-        algorithm,
-        expiresIn: accessTokenDuration,
-        issuer,
-        noTimestamp: true,
-    } as SignOptions
-
-    const refreshTokenOptions = {
-        algorithm,
-        issuer,
-        expiresIn: refreshTokenDuration,
-        subject: "refresh"
-    } as SignOptions
-
-    config = {
-        secretOrPrivateKey,
-        accessTokenOptions,
-        secretOrPublicKey,
-        refreshTokenOptions,
+    public verifyRefreshToken(encodedToken: string) {
+        return new Promise<any>((resolve, reject) => {
+            verify(
+                encodedToken,
+                this.config.secretOrPublicKey,
+                this.config.refreshTokenOptions,
+                (err, decoded) => {
+                    if (err) { reject(err); return }
+                    if (decoded) { resolve(decoded); return }
+                    reject("Unexpected error, token validation did not succeed but did not return an error")
+                }
+            )
+        })
+    }
+    public signAccessToken(token: IdToken) {
+        return this.signJWT(token, this.config.secretOrPrivateKey, this.config.accessTokenOptions)
+    }
+    
+    public signRefreshToken(refreshToken: object) {
+        return this.signJWT(refreshToken, this.config.secretOrPrivateKey, this.config.refreshTokenOptions)
+    }
+    
+    private async signJWT(token: Object, secret: Secret, options: SignOptions) {
+        return new Promise<string>((resolve, reject) => {
+            sign(token, secret, options, (err, encoded) => {
+                if (encoded) {
+                    resolve(encoded)
+                } else {
+                    reject(err)
+                }
+            })
+        })
     }
 }
 

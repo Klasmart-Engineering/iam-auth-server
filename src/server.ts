@@ -3,17 +3,16 @@ import express, { Request, Response } from "express";
 import {
 	accessTokenDuration,
 	httpsOnlyCookie,
-	jwtInit,
+	JwtService,
 	refreshTokenDuration,
-	signAccessToken,
 	transferToken,
-	verifyAccessToken,
 } from "./jwt";
 import { RefreshTokenManager } from "./refreshToken";
 import { validateString } from "./util/validate";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors"
 import { decode } from "jsonwebtoken";
+import { createJwtConfig } from "./jwtConfig";
 
 const domain = process.env.DOMAIN
 const domainRegex = /^(.*\.)?kidsloop\.net(:[0-9]*)?$/
@@ -21,10 +20,10 @@ const routePrefix = process.env.ROUTE_PREFIX || ""
 
 export class AuthServer {
 	public static async create() {
-		const tokenManager = await RefreshTokenManager.create();
-		const server = new AuthServer(tokenManager);
-
-		await jwtInit();
+		const jwtConfig = await createJwtConfig();
+		const jwtService = JwtService.create(jwtConfig);
+		const tokenManager = RefreshTokenManager.create(jwtService);
+		const server = new AuthServer(tokenManager, jwtService);
 
 		const jsonParser = bodyParser.json();
 
@@ -64,8 +63,10 @@ export class AuthServer {
 	}
 
 	private refreshTokenManager: RefreshTokenManager;
-	private constructor(tokenManager: RefreshTokenManager) {
+	private jwtService: JwtService;
+	private constructor(tokenManager: RefreshTokenManager, jwtService: JwtService) {
 		this.refreshTokenManager = tokenManager;
+		this.jwtService = jwtService;
 	}
 
 	private async transfer(req: Request, res: Response) {
@@ -78,7 +79,7 @@ export class AuthServer {
 
 			const token = await transferToken(encodedToken);
 
-			const accessToken = await signAccessToken(token);
+			const accessToken = await this.jwtService.signAccessToken(token);
 			const refreshToken = await this.refreshTokenManager.createSession(
 				session_name,
 				token
@@ -100,7 +101,7 @@ export class AuthServer {
 		try {
 			const previousEncodedAccessToken = validateString(req.cookies.access);
 			if (previousEncodedAccessToken) {
-				const accessToken = await verifyAccessToken(previousEncodedAccessToken).catch((e) => undefined)
+				const accessToken = await this.jwtService.verifyAccessToken(previousEncodedAccessToken).catch((e) => undefined)
 				if (accessToken) {
 					res.status(200)
 						.json(accessToken)
