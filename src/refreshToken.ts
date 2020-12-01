@@ -1,5 +1,4 @@
 import { v4 } from "uuid";
-import { Client, DseClientOptions, mapping } from 'cassandra-driver';
 import { IdToken, JwtService } from "./jwt";
 
 
