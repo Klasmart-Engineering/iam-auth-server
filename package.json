@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/entry.ts"
+    "start": "ts-node src/entry.ts",
+    "start:debug": "ts-node src/debug.ts"
   },
   "author": "",
   "license": "ISC",
