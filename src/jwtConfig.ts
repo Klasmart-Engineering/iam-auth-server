@@ -38,19 +38,18 @@ export async function createJwtConfig(): Promise<JwtConfig> {
         secretOrPublicKey = keys.publicKey
     }
     else {
-        const algorithm = process.env.JWT_ALGORITHM
-
-        switch (algorithm) {
+        switch (process.env.JWT_ALGORITHM) {
             case "HS256":
             case "HS384":
             case "HS512":
+                algorithm = process.env.JWT_ALGORITHM
                 if (process.env.JWT_PRIVATE_KEY || process.env.JWT_PRIVATE_KEY_FILENAME) {
                     throw new Error(`JWT configuration error - can not use '${algorithm}' algorithm with private key, please set JWT_SECRET enviroment variable`)
                 }
-                if (process.env.JWT_SECRET) {
-                    secretOrPrivateKey = process.env.JWT_SECRET
-                    secretOrPublicKey = process.env.JWT_SECRET
-                }
+                if (!process.env.JWT_SECRET) { throw new Error(`JWT algorithm '${algorithm}' requires a secret please set the JWT_SECRET enviroment variable`) }
+                secretOrPrivateKey = process.env.JWT_SECRET
+                secretOrPublicKey = process.env.JWT_SECRET
+                break;
             case "RS256":
             case "RS384":
             case "RS512":
@@ -60,6 +59,7 @@ export async function createJwtConfig(): Promise<JwtConfig> {
             case "PS256":
             case "PS384":
             case "PS512":
+                algorithm = process.env.JWT_ALGORITHM
                 if (process.env.JWT_SECRET) {
                     throw new Error(`JWT configuration error - can not use '${algorithm}' algorithm with jwt secret key, please set JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_FILENAME enviroment variable`)
                 }
@@ -81,6 +81,7 @@ export async function createJwtConfig(): Promise<JwtConfig> {
                     ? { key: privateKey, passphrase: process.env.JWT_PRIVATE_KEY_PASSPHRASE }
                     : privateKey
                 secretOrPublicKey = publicKey
+                break;
             default:
                 throw new Error("JWT Token not configured")
         }
