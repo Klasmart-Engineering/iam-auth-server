@@ -9,9 +9,10 @@ export async function retrieveJWTKeys(secretName: string) {
         if (!secret) throw new Error("The returned secret is undefined.");
         const keys = JSON.parse(secret);
         return {
-            algorithm: keys["ALGORITHM"].replace(/\\n/gm, '\n'),
-            privateKey: keys["PRIVATE_KEY"].replace(/\\n/gm, '\n'),
-            publicKey: keys["PUBLIC_KEY"].replace(/\\n/gm, '\n'),
+            algorithm: keys["ALGORITHM"]?.replace(/\\n/gm, '\n') as string | undefined,
+            privateKey: keys["PRIVATE_KEY"]?.replace(/\\n/gm, '\n') as string | undefined,
+            publicKey: keys["PUBLIC_KEY"]?.replace(/\\n/gm, '\n') as string | undefined,
+            privateKeyPassphrase: keys["PRIVATE_KEY_PASSPHRASE"]?.replace(/\\n/gm, '\n') as string | undefined,
         }
     } catch (err) {
         if (err.code === 'DecryptionFailureException')
