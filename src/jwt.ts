@@ -210,12 +210,18 @@ class StandardIssuerConfig implements IssuerConfig {
         }
 
         const email = token.email
-        if (!email || typeof email !== "string") { throw new Error("No Email") }
-        const id = accountUUID(email)
+        const phone = token.phone
+        if (email && phone) { throw new Error("Must not specify email and phone") }
+        if (!email && !phone) { throw new Error("Must specify email xor phone") }
+        if (email && typeof email !== "string") { throw new Error("Email must be a string") }
+        if (phone && typeof phone !== "string") { throw new Error("Phone must be a string") }
+
+        const id = accountUUID(email||phone)
 
         return {
             id,
             email,
+            phone,
             name: name(),
         }
     }
@@ -225,51 +231,31 @@ class StandardIssuerConfig implements IssuerConfig {
 
 const issuers = new Map<string, IssuerConfig>([
     ["accounts.google.com", new GoogleIssuerConfig()],
-    ["Badanamu AMS",
-        new BadanamuIssuerConfig(
-            `-----BEGIN PUBLIC KEY-----
-MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1
-8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf
-H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP
-wTT7osO/AOfbIsktAgMBAAE=
------END PUBLIC KEY-----`,
-        )],
-    ["KidsLoopChinaUser-live",
-        new StandardIssuerConfig(
-            `-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDAGN9KAcc61KBz8EQAH54bFwGK
-6PEQNVXXlsObwFd3Zos83bRm+3grzP0pKWniZ6TL/y7ZgFh4OlUMh9qJjIt6Lpz9
-l4uDxkgDDrKHn8IrflBxjJKq0OyXqwIYChnFoi/HGjcRtJhi8oTFToSvKMqIeUuL
-mWmLA8nXdDnMl7zwoQIDAQAB
------END PUBLIC KEY-----`,
-        )]
-    /*
-    ["KidsLoopChinaUser-live"]
-    "-----BEGIN PUBLIC KEY-----",
-    "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDAGN9KAcc61KBz8EQAH54bFwGK",
-    "6PEQNVXXlsObwFd3Zos83bRm+3grzP0pKWniZ6TL/y7ZgFh4OlUMh9qJjIt6Lpz9",
-    "l4uDxkgDDrKHn8IrflBxjJKq0OyXqwIYChnFoi/HGjcRtJhi8oTFToSvKMqIeUuL",
-    "mWmLA8nXdDnMl7zwoQIDAQAB",
-    "-----END PUBLIC KEY-----"
-    */
-    /*
-    ["badanamu AMS"] //Dev
------BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQChCrS9+Bt8tpsJQNpo0CkQMAmX
-gxRXYJwBdn0Bf3Gks5dJF6THHjQMQmBKbdlZ7EsM46oveYf3UnJXH7X7xgBNBvHq
-QLEnCvgze0Yi66ul0Rf0GKH6ImMUBfUVksn+sOJ/6c+uzcscEljy/eCKYaWKoMMQ
-EDkqiqxrS3EewLpRxQIDAQAB
------END PUBLIC KEY-----
-    */
-    /*
-   ["badanamu AMS"] //Prod
------BEGIN PUBLIC KEY-----
-MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1
-8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf
-H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP
-wTT7osO/AOfbIsktAgMBAAE=
------END PUBLIC KEY-----
-    */
+    [
+        "Badanamu AMS",
+        new BadanamuIssuerConfig([
+            "-----BEGIN PUBLIC KEY-----",
+            "MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1",
+            "8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf",
+            "H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP",
+            "wTT7osO/AOfbIsktAgMBAAE=",
+            "-----END PUBLIC KEY-----",
+        ].join("\n")),
+    ],
+    [
+        "Kidsloop_cn",
+        new StandardIssuerConfig([
+            "-----BEGIN PUBLIC KEY-----",
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxw7TuSD72UpPMbS779d6",
+            "/87nVC2TCCO14sHboHKaFSkENgTW6gGWwUUjrSaeT2KxS0mT8gZ42ToaSZ1jakBR",
+            "4SqH8CZ+ZkFD6C5KLB+wGWzYnqt52XtHUbvH71xxN2Yd3eYGI9iLZs3ZwWUaxovW",
+            "4JvNteRlY0MnkEcjCdc/E1VqKOnr+WaENU7vgQ/V1p8fLuNA0h/7/oIjFGHd++5c",
+            "S1GdFIL29LiVrhgqyOnB8tvixT/nAd/cHHbotHNW2C1S5T1IKRkDe0K3m7eAAHzx",
+            "fhf4evczLMI1RAWEPPMsRbBZzRkn14OhpQhe+nSpkdoW3hac350vy1/pZDRFE/zS",
+            "8QIDAQAB",
+            "-----END PUBLIC KEY-----",
+        ].join("\n")),
+    ]
 ])
 
 const accountNamespace = v5(domain||"", v5.DNS)
