@@ -153,8 +153,10 @@ class GoogleIssuerConfig implements IssuerConfig {
             return undefined
         }
 
-        const email = token.email
-        if (!email || typeof email !== "string") { throw new Error("No Email") }
+        let email = token.email
+        if (!email) { throw new Error("No Email") }
+        if (typeof email !== "string") { throw new Error("Email must be a string") }
+        email = normalizedLowercaseTrimmed(email)
         const id = accountUUID(email)
 
         return {
@@ -182,8 +184,10 @@ class BadanamuIssuerConfig implements IssuerConfig {
             return undefined
         }
 
-        const email = token.em
-        if (!email || typeof email !== "string") { throw new Error("No Email") }
+        let email = token.em
+        if (!email) { throw new Error("No Email") }
+        if (typeof email !== "string") { throw new Error("Email must be a string") }
+        email = normalizedLowercaseTrimmed(email)
         const id = accountUUID(email)
 
         return {
@@ -209,12 +213,18 @@ class StandardIssuerConfig implements IssuerConfig {
             return undefined
         }
 
-        const email = token.email
-        const phone = token.phone
+        let email = token.email
+        let phone = token.phone
         if (email && phone) { throw new Error("Must not specify email and phone") }
         if (!email && !phone) { throw new Error("Must specify email xor phone") }
-        if (email && typeof email !== "string") { throw new Error("Email must be a string") }
-        if (phone && typeof phone !== "string") { throw new Error("Phone must be a string") }
+        if(email) {
+            if(typeof email !== "string") { throw new Error("Email must be a string") }
+            email = normalizedLowercaseTrimmed(email)
+        }
+        if(phone) {
+            if (typeof phone !== "string") { throw new Error("Phone must be a string") }
+            phone = normalizedLowercaseTrimmed(phone)
+        }
 
         const id = accountUUID(email||phone)
 
@@ -258,9 +268,10 @@ const issuers = new Map<string, IssuerConfig>([
     ]
 ])
 
+const normalizedLowercaseTrimmed = (x: string) => x.normalize("NFKC").toLowerCase().trim()
 const accountNamespace = v5(domain||"", v5.DNS)
 export function accountUUID(email?: string) {
     const hash = createHash('sha256');
-    if (email) { hash.update(email) }
+    if (email) { hash.update(normalizedLowercaseTrimmed(email)) }
     return v5(hash.digest(), accountNamespace)
 }
