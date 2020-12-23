@@ -15,7 +15,7 @@ import { decode } from "jsonwebtoken";
 import { createJwtConfig } from "./jwtConfig";
 
 const domain = process.env.DOMAIN
-const domainRegex = /^(.*\.)?kidsloop\.net(:[0-9]*)?$/
+const domainRegex = /^(.*\.)?kidsloop\.(cn|net)$/
 const routePrefix = process.env.ROUTE_PREFIX || ""
 
 export class AuthServer {
