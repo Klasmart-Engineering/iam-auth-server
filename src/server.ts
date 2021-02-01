@@ -148,7 +148,7 @@ export class AuthServer {
 	private signOut(req: Request, res: Response) {
 		try {
 			res.clearCookie("access", { domain })
-				.clearCookie("refresh")
+				.clearCookie("refresh", { path: "/refresh" })
 				.status(200)
 				.end()
 		} catch (e) {
