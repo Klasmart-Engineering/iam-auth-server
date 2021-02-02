@@ -13,9 +13,12 @@ import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors"
 import { decode } from "jsonwebtoken";
 import { createJwtConfig } from "./jwtConfig";
+import escapeStringRegexp from "escape-string-regexp"
 
-const domain = process.env.DOMAIN
-const domainRegex = /^(.*\.)?kidsloop\.net(:[0-9]*)?$/
+const domain = process.env.DOMAIN || ""
+if(!domain) { throw new Error(`Please specify the DOMAIN enviroment variable`) }
+
+const domainRegex = new RegExp(`^(.*\.)?${escapeStringRegexp(domain)}(:[0-9]+)?$`)
 const routePrefix = process.env.ROUTE_PREFIX || ""
 
 export class AuthServer {
