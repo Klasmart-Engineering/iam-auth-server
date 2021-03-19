@@ -185,14 +185,25 @@ class BadanamuIssuerConfig implements IssuerConfig {
         }
 
         let email = token.em
-        if (!email) { throw new Error("No Email") }
-        if (typeof email !== "string") { throw new Error("Email must be a string") }
-        email = normalizedLowercaseTrimmed(email)
-        const id = accountUUID(email)
+        let phone = token.pn
+        if (!phone && !email) { throw new Error("Must specify email xor phone") }
+        if (email && phone) { throw new Error("Must specify email OR phone, not both") }
+        if(email) {
+            if(typeof email !== "string") { throw new Error("Email must be a string") }
+            email = normalizedLowercaseTrimmed(email)
+        }
+        if(phone) {
+            if (typeof phone !== "string") { throw new Error("Phone must be a string") }
+            phone = normalizedLowercaseTrimmed(phone)
+        }
+        
+
+        const id = accountUUID(email||phone)
 
         return {
             id,
             email,
+            phone,
             name: name(),
         }
     }
@@ -216,7 +227,7 @@ class StandardIssuerConfig implements IssuerConfig {
         let email = token.email
         let phone = token.phone
         if (email && phone) { throw new Error("Must not specify email and phone") }
-        if (!email && !phone) { throw new Error("Must specify email xor phone") }
+        if (!email && !phone) { throw new Error("Must specify email OR phone, not both") }
         if(email) {
             if(typeof email !== "string") { throw new Error("Email must be a string") }
             email = normalizedLowercaseTrimmed(email)
