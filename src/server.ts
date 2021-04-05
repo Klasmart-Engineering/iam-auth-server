@@ -37,10 +37,8 @@ export class AuthServer {
 			credentials: true,
 			origin: (origin, callback) => {
 				try {
-					console.log(origin)
 					if (!origin) { console.log(origin, false); callback(null, false); return }
 					const match = origin.match(domainRegex)
-					console.log(origin, Boolean(match));
 					callback(null, Boolean(match))
 				} catch (e) {
 					console.log(e)
