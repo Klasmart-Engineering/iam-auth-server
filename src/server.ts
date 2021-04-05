@@ -14,6 +14,7 @@ import cors, { CorsOptions } from "cors"
 import { decode } from "jsonwebtoken";
 import { createJwtConfig } from "./jwtConfig";
 import escapeStringRegexp from "escape-string-regexp"
+import { connectToDB, switchProfile } from "./db";
 
 const domain = process.env.DOMAIN || ""
 if(!domain) { throw new Error(`Please specify the DOMAIN enviroment variable`) }
@@ -25,6 +26,7 @@ export class AuthServer {
 	public static async create() {
 		const jwtConfig = await createJwtConfig();
 		const jwtService = JwtService.create(jwtConfig);
+		const dbconnection = await connectToDB();
 		const tokenManager = RefreshTokenManager.create(jwtService);
 		const server = new AuthServer(tokenManager, jwtService);
 
@@ -52,6 +54,7 @@ export class AuthServer {
 		app.use(jsonParser)
 		app.get('/.well-known/express/server-health', (req, res) => { res.status(200); res.end() })
 		app.post(`${routePrefix}/transfer`, (req, res) => server.transfer(req, res))
+		app.post(`${routePrefix}/switch`, cors(corsConfiguration), (req, res) => server.switchProfile(req, res))
 		app.all(`${routePrefix}/refresh`, cors(corsConfiguration), (req, res) => server.refresh(req, res))
 		app.all(`${routePrefix}/signout`, cors(corsConfiguration), (req, res) => server.signOut(req, res))
 
@@ -96,6 +99,38 @@ export class AuthServer {
 			console.error(e);
 			res.statusMessage = "Invalid Token";
 			res.status(400);
+			res.end();
+		}
+	}
+
+	private async switchProfile(req: Request, res: Response) {
+		try {
+			const previousEncodedAccessToken = validateString(req.cookies.access);
+			if (!previousEncodedAccessToken) {
+				throw new Error("No token");
+			}
+			
+			const user_id = validateString(req.body.user_id);
+			if(!user_id) {
+				res.statusMessage = "Invalid ID";
+				res.status(401).end()
+				return;
+			}
+			const previousAccessToken = await this.jwtService.verifyAccessToken(previousEncodedAccessToken)
+			
+			const session_name = req.get("User-Agent") || "Unkown Device";
+			const newToken = await switchProfile(previousAccessToken, user_id)
+			const accessToken = await this.jwtService.signAccessToken(newToken);
+			const refreshToken = await this.refreshTokenManager.createSession(session_name, newToken);
+			this.setTokenCookies(res, refreshToken, accessToken)
+
+			res.status(200);
+			res.end();
+			return;
+		} catch(e) {
+			console.error(e);
+			res.statusMessage = "Invalid Token";
+			res.status(401);
 			res.end();
 		}
 	}
