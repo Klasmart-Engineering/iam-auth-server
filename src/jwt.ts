@@ -1,4 +1,4 @@
-import { sign, Secret, SignOptions } from "jsonwebtoken"
+import { sign, Secret, SignOptions, VerifyOptions, Algorithm } from "jsonwebtoken"
 import { v5 } from "uuid"
 
 import jwksClient from "jwks-rsa"
@@ -88,14 +88,14 @@ export async function transferToken(encodedToken: string): Promise<IdToken> {
     const config = issuers.get(issuer)
     if (!config) { throw new Error(`Unknown Issuer(${issuer})`) }
 
-    const key = await config.getPublicKeyOrSecret(keyId)
-    if (!key) { throw new Error(`Unable to get verification secret or public key for Issuer(${payload.iss}) and KeyId(${header.kid})`) }
+    const {publicKeyOrSecret, options} = await config.getValidationParameter(keyId)
+    if (!publicKeyOrSecret) { throw new Error(`Unable to get verification secret or public key for Issuer(${payload.iss}) and KeyId(${header.kid})`) }
 
     return new Promise<IdToken>((resolve, reject) => {
         verify(
             encodedToken,
-            key,
-            {}, //TODO ALGORITHMS
+            publicKeyOrSecret,
+            options,
             (err: VerifyErrors | null, decoded: object | undefined) => {
                 if (err) { reject(err); return }
                 if (decoded) {
@@ -115,7 +115,7 @@ export async function transferToken(encodedToken: string): Promise<IdToken> {
 }
 
 export interface IssuerConfig {
-    getPublicKeyOrSecret(keyId?: string): Promise<Secret>
+    getValidationParameter(keyId?: string): Promise<{publicKeyOrSecret: Secret, options: VerifyOptions}>
     createToken(token: object): IdToken
 }
 
@@ -126,11 +126,20 @@ class GoogleIssuerConfig implements IssuerConfig {
     })
     constructor() {}
 
-    public async getPublicKeyOrSecret(keyId?: string) {
+    public async getValidationParameter(keyId?: string) {
         if (!keyId) { throw new Error(`Unable to get public key for Issuer(accounts.google.com) due to missing keyId(${keyId})`) }
         const response = await this.client.getSigningKeyAsync(keyId)
-        return response.getPublicKey()
+        const alg = validateAlgorithm((response as any)["alg"])
+        const publicKeyOrSecret = response.getPublicKey();
+        const options: VerifyOptions = {
+            algorithms: [alg],
+        }
+        return {
+            publicKeyOrSecret,
+            options,
+        }
     }
+
     public createToken(token: any) {
         function givenName() {
             if (typeof token.given_name === "string") {
@@ -171,12 +180,17 @@ class GoogleIssuerConfig implements IssuerConfig {
 
 class BadanamuIssuerConfig implements IssuerConfig {
     private publicKeyOrSecret: Secret
+    private options: VerifyOptions 
 
-    constructor(publicKeyOrSecret: Secret) {
+    constructor(publicKeyOrSecret: Secret, options: VerifyOptions) {
         this.publicKeyOrSecret = publicKeyOrSecret
+        this.options = options
     }
-    public async getPublicKeyOrSecret(keyId?: string) {
-        return this.publicKeyOrSecret
+    public async getValidationParameter(keyId?: string) {
+        return {
+            publicKeyOrSecret: this.publicKeyOrSecret,
+            options: this.options,
+        }
     }
     public createToken(token: any) {
         function name() {
@@ -211,12 +225,17 @@ class BadanamuIssuerConfig implements IssuerConfig {
 
 class StandardIssuerConfig implements IssuerConfig {
     private publicKeyOrSecret: Secret
+    private options: VerifyOptions 
 
-    constructor(publicKeyOrSecret: Secret) {
+    constructor(publicKeyOrSecret: Secret, options: VerifyOptions) {
         this.publicKeyOrSecret = publicKeyOrSecret
+        this.options = options
     }
-    public async getPublicKeyOrSecret(keyId?: string) {
-        return this.publicKeyOrSecret
+    public async getValidationParameter(keyId?: string) {
+        return {
+            publicKeyOrSecret: this.publicKeyOrSecret,
+            options: this.options,
+        }
     }
     public createToken(token: any) {
         function name() {
@@ -254,30 +273,68 @@ const issuers = new Map<string, IssuerConfig>([
     ["accounts.google.com", new GoogleIssuerConfig()],
     [
         "Badanamu AMS",
-        new BadanamuIssuerConfig([
-            "-----BEGIN PUBLIC KEY-----",
-            "MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1",
-            "8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf",
-            "H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP",
-            "wTT7osO/AOfbIsktAgMBAAE=",
-            "-----END PUBLIC KEY-----",
-        ].join("\n")),
+        new BadanamuIssuerConfig(
+            [
+                "-----BEGIN PUBLIC KEY-----",
+                "MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1",
+                "8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf",
+                "H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP",
+                "wTT7osO/AOfbIsktAgMBAAE=",
+                "-----END PUBLIC KEY-----",
+            ].join("\n"),
+            {
+                algorithms: [
+                    "RS256",
+                    "RS384",
+                    "RS512",
+                ],
+            }
+        ),
     ],
     [
         "Kidsloop_cn",
-        new StandardIssuerConfig([
-            "-----BEGIN PUBLIC KEY-----",
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxw7TuSD72UpPMbS779d6",
-            "/87nVC2TCCO14sHboHKaFSkENgTW6gGWwUUjrSaeT2KxS0mT8gZ42ToaSZ1jakBR",
-            "4SqH8CZ+ZkFD6C5KLB+wGWzYnqt52XtHUbvH71xxN2Yd3eYGI9iLZs3ZwWUaxovW",
-            "4JvNteRlY0MnkEcjCdc/E1VqKOnr+WaENU7vgQ/V1p8fLuNA0h/7/oIjFGHd++5c",
-            "S1GdFIL29LiVrhgqyOnB8tvixT/nAd/cHHbotHNW2C1S5T1IKRkDe0K3m7eAAHzx",
-            "fhf4evczLMI1RAWEPPMsRbBZzRkn14OhpQhe+nSpkdoW3hac350vy1/pZDRFE/zS",
-            "8QIDAQAB",
-            "-----END PUBLIC KEY-----",
-        ].join("\n")),
+        new StandardIssuerConfig(
+            [
+                "-----BEGIN PUBLIC KEY-----",
+                "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxw7TuSD72UpPMbS779d6",
+                "/87nVC2TCCO14sHboHKaFSkENgTW6gGWwUUjrSaeT2KxS0mT8gZ42ToaSZ1jakBR",
+                "4SqH8CZ+ZkFD6C5KLB+wGWzYnqt52XtHUbvH71xxN2Yd3eYGI9iLZs3ZwWUaxovW",
+                "4JvNteRlY0MnkEcjCdc/E1VqKOnr+WaENU7vgQ/V1p8fLuNA0h/7/oIjFGHd++5c",
+                "S1GdFIL29LiVrhgqyOnB8tvixT/nAd/cHHbotHNW2C1S5T1IKRkDe0K3m7eAAHzx",
+                "fhf4evczLMI1RAWEPPMsRbBZzRkn14OhpQhe+nSpkdoW3hac350vy1/pZDRFE/zS",
+                "8QIDAQAB",
+                "-----END PUBLIC KEY-----",
+            ].join("\n"),
+            {
+                algorithms: [
+                    "RS256",
+                    "RS384",
+                    "RS512",
+                ],
+            }
+        ),
     ]
 ])
+
+function validateAlgorithm(alg?: any): Algorithm {
+    if(typeof alg !== "string") { throw new Error("Unknown alogrithm") }
+    switch(alg) {
+        case "HS256":
+        case "HS384":
+        case "HS512":
+        case "RS256":
+        case "RS384":
+        case "RS512":
+        case "ES256":
+        case "ES384":
+        case "ES512":
+        case "PS256":
+        case "PS384":
+        case "PS512":
+            return alg
+        }
+        throw new Error(`Unknown algorithm '${alg}'`)
+}
 
 const normalizedLowercaseTrimmed = (x: string) => x.normalize("NFKC").toLowerCase().trim()
 const accountNamespace = v5(domain||"", v5.DNS)
