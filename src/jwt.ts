@@ -75,7 +75,14 @@ export class JwtService {
 export interface IdToken {
     id: string,
     email?: string,
+    phone?: string,
+
+    // Not used?
     name?: string,
+
+    // Only used by google
+    given_name?: string,
+    family_name?: string,
 }
 
 export async function transferToken(encodedToken: string): Promise<IdToken> {
@@ -140,7 +147,7 @@ class GoogleIssuerConfig implements IssuerConfig {
         }
     }
 
-    public createToken(token: any) {
+    public createToken(token: any): IdToken {
         function givenName() {
             if (typeof token.given_name === "string") {
                 return token.given_name.trim()
@@ -192,7 +199,7 @@ class BadanamuIssuerConfig implements IssuerConfig {
             options: this.options,
         }
     }
-    public createToken(token: any) {
+    public createToken(token: any): IdToken {
         function name() {
             if (typeof token.name === "string") { return token.name }
             return undefined
@@ -237,7 +244,7 @@ class StandardIssuerConfig implements IssuerConfig {
             options: this.options,
         }
     }
-    public createToken(token: any) {
+    public createToken(token: any): IdToken {
         function name() {
             if (typeof token.name === "string") { return token.name }
             return undefined
