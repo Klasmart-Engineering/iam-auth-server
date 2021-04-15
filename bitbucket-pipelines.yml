@@ -20,6 +20,7 @@ pipelines:
           - aws configure set aws_secret_access_key "${AWS_SECRET}"
           - eval $(aws ecr get-login --no-include-email --region eu-west-2 | sed 's;https://;;g')
 
+          - cp deploy/Dockerfile.bitbucket-pipeline .
           - docker build -t kidsloop-auth-server -f Dockerfile.bitbucket-pipeline .
           - docker tag kidsloop-auth-server:latest 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:latest
           - docker tag kidsloop-auth-server:latest 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:latest-$BITBUCKET_BUILD_NUMBER
