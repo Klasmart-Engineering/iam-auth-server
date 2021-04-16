@@ -24,8 +24,8 @@ pipelines:
           - docker build -t kidsloop-auth-server -f Dockerfile.bitbucket-pipeline .
           - docker tag kidsloop-auth-server:latest 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:$BITBUCKET_BRANCH-latest
           - docker tag kidsloop-auth-server:latest 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:$BITBUCKET_BRANCH-$BITBUCKET_BUILD_NUMBER
-          - docker push 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:latest
-          - docker push 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:latest-$BITBUCKET_BUILD_NUMBER
+          - docker push 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:$BITBUCKET_BRANCH-latest
+          - docker push 942095822719.dkr.ecr.eu-west-2.amazonaws.com/kidsloop-auth-backend:$BITBUCKET_BRANCH-$BITBUCKET_BUILD_NUMBER
         services:
           - docker
 
