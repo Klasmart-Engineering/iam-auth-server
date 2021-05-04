@@ -12,6 +12,7 @@ export async function retrieveJWTKeys(secretName: string) {
             algorithm: keys["ALGORITHM"].replace(/\\n/gm, '\n'),
             privateKey: keys["PRIVATE_KEY"].replace(/\\n/gm, '\n'),
             publicKey: keys["PUBLIC_KEY"].replace(/\\n/gm, '\n'),
+            passphrase: keys["PASSPHRASE"],
         }
     } catch (err) {
         if (err.code === 'DecryptionFailureException')

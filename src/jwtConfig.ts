@@ -33,8 +33,11 @@ export async function createJwtConfig(): Promise<JwtConfig> {
         }
 
         const keys = await retrieveJWTKeys(awsSecretName)
+        const passphrase = keys.passphrase || process.env.JWT_PRIVATE_KEY_PASSPHRASE
         algorithm = keys.algorithm
-        secretOrPrivateKey = keys.privateKey
+        secretOrPrivateKey = passphrase
+        ? { key: keys.privateKey, passphrase: process.env.JWT_PRIVATE_KEY_PASSPHRASE }
+        : keys.privateKey
         secretOrPublicKey = keys.publicKey
     }
     else {
