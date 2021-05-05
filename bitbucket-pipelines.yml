@@ -3,9 +3,9 @@ pipelines:
   default:
     - step:
         name: 'Build NPM'
-        image: node:lts
+        image: node:lts-alpine
         script:
-          - npm i
+          - npm ci
         caches:
           - nodemodules
         artifacts:
