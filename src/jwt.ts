@@ -54,11 +54,11 @@ export class JwtService {
     public signAccessToken(token: IdToken) {
         return this.signJWT(token, this.config.secretOrPrivateKey, this.config.accessTokenOptions)
     }
-    
+
     public signRefreshToken(refreshToken: object) {
         return this.signJWT(refreshToken, this.config.secretOrPrivateKey, this.config.refreshTokenOptions)
     }
-    
+
     private async signJWT(token: Object, secret: Secret, options: SignOptions) {
         return new Promise<string>((resolve, reject) => {
             sign(token, secret, options, (err, encoded) => {
@@ -187,7 +187,7 @@ class GoogleIssuerConfig implements IssuerConfig {
 
 class BadanamuIssuerConfig implements IssuerConfig {
     private publicKeyOrSecret: Secret
-    private options: VerifyOptions 
+    private options: VerifyOptions
 
     constructor(publicKeyOrSecret: Secret, options: VerifyOptions) {
         this.publicKeyOrSecret = publicKeyOrSecret
@@ -217,7 +217,6 @@ class BadanamuIssuerConfig implements IssuerConfig {
             if (typeof phone !== "string") { throw new Error("Phone must be a string") }
             phone = normalizedLowercaseTrimmed(phone)
         }
-        
 
         const id = accountUUID(email||phone)
 
@@ -232,7 +231,7 @@ class BadanamuIssuerConfig implements IssuerConfig {
 
 class StandardIssuerConfig implements IssuerConfig {
     private publicKeyOrSecret: Secret
-    private options: VerifyOptions 
+    private options: VerifyOptions
 
     constructor(publicKeyOrSecret: Secret, options: VerifyOptions) {
         this.publicKeyOrSecret = publicKeyOrSecret
@@ -320,6 +319,26 @@ const issuers = new Map<string, IssuerConfig>([
                 ],
             }
         ),
+    ],
+    [
+        "Chrysalis_School_Mitra",
+        new StandardIssuerConfig(
+            [
+                "-----BEGIN PUBLIC KEY-----",
+                "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDd4+G+PapaVeEq2ZbHBbfOFtdcCJ",
+                "CRbOgiTaIY+058TK4bn57j0lx0GpgdV3sIbjDfiR3oGiNsaRe8+AIqA6isgCht8Ofq",
+                "AQfvAh8ns5APHwy/T0SbEAyyQZQeqfR08bIITZQkzlLmUkxynb+RIA7LbPMtWeIgVW",
+                "uaAAaT+GDsEQIDAQAB",
+                "-----END PUBLIC KEY-----",
+            ].join("\n"),
+            {
+                algorithms: [
+                    "RS256",
+                    "RS384",
+                    "RS512",
+                ],
+            }
+        )
     ]
 ])
 

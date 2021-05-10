@@ -15,7 +15,9 @@ import { decode } from "jsonwebtoken";
 import { createJwtConfig } from "./jwtConfig";
 import escapeStringRegexp from "escape-string-regexp"
 import { connectToDB, switchProfile } from "./db";
+import * as dotenv from 'dotenv';
 
+dotenv.config({ path: __dirname + '/../.env' });
 const domain = process.env.DOMAIN || ""
 if(!domain) { throw new Error(`Please specify the DOMAIN enviroment variable`) }
 
@@ -107,7 +109,7 @@ export class AuthServer {
 			if (!previousEncodedAccessToken) {
 				throw new Error("No token");
 			}
-			
+
 			const user_id = validateString(req.body.user_id);
 			if(!user_id) {
 				res.statusMessage = "Invalid ID";
@@ -115,7 +117,7 @@ export class AuthServer {
 				return;
 			}
 			const previousAccessToken = await this.jwtService.verifyAccessToken(previousEncodedAccessToken)
-			
+
 			const session_name = req.get("User-Agent") || "Unkown Device";
 			const newToken = await switchProfile(previousAccessToken, user_id)
 			const accessToken = await this.jwtService.signAccessToken(newToken);
