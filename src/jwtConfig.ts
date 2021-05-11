@@ -2,7 +2,9 @@ import { readFileSync } from "fs";
 import { Secret, SignOptions } from "jsonwebtoken";
 import { accessTokenDuration, refreshTokenDuration } from "./jwt";
 import { retrieveJWTKeys } from "./jwtKeyRetriever";
+import * as dotenv from 'dotenv';
 
+dotenv.config({ path: __dirname + '/../.env' });
 const issuer = process.env.JWT_ISSUER
 
 export interface JwtConfig {

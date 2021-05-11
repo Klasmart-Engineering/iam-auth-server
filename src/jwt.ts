@@ -1,11 +1,12 @@
 import { sign, Secret, SignOptions, VerifyOptions, Algorithm } from "jsonwebtoken"
 import { v5 } from "uuid"
-
 import jwksClient from "jwks-rsa"
 import { decode, JwtHeader, verify, VerifyErrors } from "jsonwebtoken"
 import { createHash } from "crypto"
 import { JwtConfig } from "./jwtConfig"
+import * as dotenv from 'dotenv';
 
+dotenv.config({ path: __dirname + '/../.env' });
 export const accessTokenDuration = Number(process.env.JWT_ACCESS_TOKEN_DURATION) || 15*60*1000
 export const refreshTokenDuration = Number(process.env.JWT_REFRESH_TOKEN_DURATION) || 14*24*60*60*1000
 export const httpsOnlyCookie = process.env.JWT_COOKIE_ALLOW_HTTP === undefined
