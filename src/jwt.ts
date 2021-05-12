@@ -84,6 +84,9 @@ export interface IdToken {
     // Only used by google
     given_name?: string,
     family_name?: string,
+
+    // For external services/clients
+    external?: string,
 }
 
 export async function transferToken(encodedToken: string): Promise<IdToken> {
@@ -274,7 +277,50 @@ class StandardIssuerConfig implements IssuerConfig {
     }
 }
 
+class SchoolMitraIssuerConfig implements IssuerConfig {
+    private publicKeyOrSecret: Secret
+    private options: VerifyOptions
 
+    constructor(publicKeyOrSecret: Secret, options: VerifyOptions) {
+        this.publicKeyOrSecret = publicKeyOrSecret
+        this.options = options
+    }
+    public async getValidationParameter(keyId?: string) {
+        return {
+            publicKeyOrSecret: this.publicKeyOrSecret,
+            options: this.options,
+        }
+    }
+    public createToken(token: any): IdToken {
+        function name() {
+            if (typeof token.name === "string") { return token.name }
+            return undefined
+        }
+
+        let email = token.email
+        let phone = token.phone
+        if (!phone && !email) { throw new Error("Must specify email OR phone") }
+        if (email && phone) { throw new Error("Must specify email OR phone, not both") }
+        if (email) {
+            if (typeof email !== "string") { throw new Error("Email must be a string") }
+            email = normalizedLowercaseTrimmed(email)
+        }
+        if (phone) {
+            if (typeof phone !== "string") { throw new Error("Phone must be a string") }
+            phone = normalizedLowercaseTrimmed(phone)
+        }
+
+        const id = accountUUID(email||phone)
+
+        return {
+            id,
+            email,
+            phone,
+            name: name(),
+            external: "SchoolMitra",
+        }
+    }
+}
 
 const issuers = new Map<string, IssuerConfig>([
     ["accounts.google.com", new GoogleIssuerConfig()],
@@ -323,7 +369,7 @@ const issuers = new Map<string, IssuerConfig>([
     ],
     [
         "Chrysalis_School_Mitra",
-        new StandardIssuerConfig(
+        new SchoolMitraIssuerConfig(
             [
                 "-----BEGIN PUBLIC KEY-----",
                 "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDd4+G+PapaVeEq2ZbHBbfOFtdcCJ",
