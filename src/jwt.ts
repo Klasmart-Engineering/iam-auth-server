@@ -334,8 +334,6 @@ const issuers = new Map<string, IssuerConfig>([
             ].join("\n"),
             {
                 algorithms: [
-                    "RS256",
-                    "RS384",
                     "RS512",
                 ],
             }
