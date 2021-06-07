@@ -73,7 +73,7 @@ export class JwtService {
 }
 
 export interface IdToken {
-    id: string,
+    id?: string,
     email?: string,
     phone?: string,
 
@@ -173,10 +173,8 @@ class GoogleIssuerConfig implements IssuerConfig {
         if (!email) { throw new Error("No Email") }
         if (typeof email !== "string") { throw new Error("Email must be a string") }
         email = normalizedLowercaseTrimmed(email)
-        const id = accountUUID(email)
 
         return {
-            id,
             email,
             given_name: givenName(),
             family_name: familyName(),
@@ -218,11 +216,7 @@ class BadanamuIssuerConfig implements IssuerConfig {
             phone = normalizedLowercaseTrimmed(phone)
         }
         
-
-        const id = accountUUID(email||phone)
-
         return {
-            id,
             email,
             phone,
             name: name(),
@@ -263,10 +257,7 @@ class StandardIssuerConfig implements IssuerConfig {
             phone = normalizedLowercaseTrimmed(phone)
         }
 
-        const id = accountUUID(email||phone)
-
         return {
-            id,
             email,
             phone,
             name: name(),
@@ -344,9 +335,3 @@ function validateAlgorithm(alg?: any): Algorithm {
 }
 
 const normalizedLowercaseTrimmed = (x: string) => x.normalize("NFKC").toLowerCase().trim()
-const accountNamespace = v5(domain||"", v5.DNS)
-export function accountUUID(email?: string) {
-    const hash = createHash('sha256');
-    if (email) { hash.update(normalizedLowercaseTrimmed(email)) }
-    return v5(hash.digest(), accountNamespace)
-}
