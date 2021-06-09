@@ -1,4 +1,5 @@
 import { createConnection } from 'typeorm'
+
 import { User } from './entities/user'
 import { IdToken } from './jwt'
 
@@ -30,7 +31,7 @@ export async function switchProfile(
         throw new Error('Access token does not contain valid email or phone')
     }
 
-    const user = await User.findOneOrFail({
+    await User.findOneOrFail({
         where: [
             { user_id, email },
             { user_id, phone },

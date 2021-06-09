@@ -1,5 +1,11 @@
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import cors, { CorsOptions } from 'cors'
+import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
+import { decode } from 'jsonwebtoken'
+
+import { connectToDB, switchProfile } from './db'
 import {
     accessTokenDuration,
     httpsOnlyCookie,
@@ -7,14 +13,9 @@ import {
     refreshTokenDuration,
     transferToken,
 } from './jwt'
+import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'
-import cookieParser from 'cookie-parser'
-import cors, { CorsOptions } from 'cors'
-import { decode } from 'jsonwebtoken'
-import { createJwtConfig } from './jwtConfig'
-import escapeStringRegexp from 'escape-string-regexp'
-import { connectToDB, switchProfile } from './db'
 
 const domain = process.env.DOMAIN || ''
 if (!domain) {
@@ -22,7 +23,7 @@ if (!domain) {
 }
 
 const domainRegex = new RegExp(
-    `^(.*\.)?${escapeStringRegexp(domain)}(:[0-9]+)?$`
+    `^(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]+)?$`
 )
 const routePrefix = process.env.ROUTE_PREFIX || ''
 
@@ -30,7 +31,7 @@ export class AuthServer {
     public static async create() {
         const jwtConfig = await createJwtConfig()
         const jwtService = JwtService.create(jwtConfig)
-        const dbconnection = await connectToDB()
+        await connectToDB()
         const tokenManager = RefreshTokenManager.create(jwtService)
         const server = new AuthServer(tokenManager, jwtService)
 

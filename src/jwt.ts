@@ -1,15 +1,16 @@
 import {
-    sign,
-    Secret,
-    SignOptions,
-    VerifyOptions,
     Algorithm,
+    decode,
+    JwtHeader,
+    Secret,
+    sign,
+    SignOptions,
+    verify,
+    VerifyErrors,
+    VerifyOptions,
 } from 'jsonwebtoken'
-import { v5 } from 'uuid'
-
 import jwksClient from 'jwks-rsa'
-import { decode, JwtHeader, verify, VerifyErrors } from 'jsonwebtoken'
-import { createHash } from 'crypto'
+
 import { JwtConfig } from './jwtConfig'
 
 export const accessTokenDuration =
@@ -17,8 +18,6 @@ export const accessTokenDuration =
 export const refreshTokenDuration =
     Number(process.env.JWT_REFRESH_TOKEN_DURATION) || 14 * 24 * 60 * 60 * 1000
 export const httpsOnlyCookie = process.env.JWT_COOKIE_ALLOW_HTTP === undefined
-
-const domain = process.env.DOMAIN
 
 export class JwtService {
     public static create(jwtConfig: JwtConfig) {
@@ -83,6 +82,7 @@ export class JwtService {
         )
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     public signRefreshToken(refreshToken: object) {
         return this.signJWT(
             refreshToken,
@@ -91,6 +91,7 @@ export class JwtService {
         )
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     private async signJWT(token: Object, secret: Secret, options: SignOptions) {
         return new Promise<string>((resolve, reject) => {
             sign(token, secret, options, (err, encoded) => {
@@ -148,6 +149,7 @@ export async function transferToken(encodedToken: string): Promise<IdToken> {
             encodedToken,
             publicKeyOrSecret,
             options,
+            // eslint-disable-next-line @typescript-eslint/ban-types
             (err: VerifyErrors | null, decoded: object | undefined) => {
                 if (err) {
                     reject(err)
@@ -175,6 +177,7 @@ export interface IssuerConfig {
     getValidationParameter(
         keyId?: string
     ): Promise<{ publicKeyOrSecret: Secret; options: VerifyOptions }>
+    // eslint-disable-next-line @typescript-eslint/ban-types
     createToken(token: object): IdToken
 }
 
@@ -183,7 +186,6 @@ class GoogleIssuerConfig implements IssuerConfig {
         strictSsl: true,
         jwksUri: 'https://www.googleapis.com/oauth2/v3/certs',
     })
-    constructor() {}
 
     public async getValidationParameter(keyId?: string) {
         if (!keyId) {

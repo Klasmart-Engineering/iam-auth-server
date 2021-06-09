@@ -1,0 +1,36 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "simple-import-sort", "import"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+    ],
+    "rules": {
+        "no-shadow": "warn",
+        "no-async-promise-executor": "warn",
+        "@typescript-eslint/no-this-alias": "warn",
+        "no-empty-pattern": "warn",
+        "no-useless-escape": "warn",
+        "@typescript-eslint/no-empty-function": "warn",
+        "@typescript-eslint/explicit-member-accessibility": "off",
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/camelcase": "off",
+        "@typescript-eslint/array-type": "off",
+        "@typescript-eslint/no-object-literal-type-assertion": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-unused-vars": [
+            2,
+            { "vars": "all", "args": "none" }
+        ],
+        "simple-import-sort/imports": ["error"],
+        "simple-import-sort/exports": "error",
+        "import/newline-after-import": "error",
+        "import/no-duplicates": "error"
+    }
+}

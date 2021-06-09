@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs'
 import { Secret, SignOptions } from 'jsonwebtoken'
+
 import { accessTokenDuration, refreshTokenDuration } from './jwt'
 import { retrieveJWTKeys } from './jwtKeyRetriever'
 
@@ -84,7 +85,7 @@ export async function createJwtConfig(): Promise<JwtConfig> {
             case 'ES512':
             case 'PS256':
             case 'PS384':
-            case 'PS512':
+            case 'PS512': {
                 algorithm = process.env.JWT_ALGORITHM
                 if (process.env.JWT_SECRET) {
                     throw new Error(
@@ -131,6 +132,7 @@ export async function createJwtConfig(): Promise<JwtConfig> {
                     : privateKey
                 secretOrPublicKey = publicKey
                 break
+            }
             default:
                 throw new Error('JWT Token not configured')
         }
