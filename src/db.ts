@@ -1,6 +1,6 @@
-import { createConnection } from "typeorm"
-import { User } from "./entities/user"
-import { IdToken } from "./jwt"
+import { createConnection } from 'typeorm'
+import { User } from './entities/user'
+import { IdToken } from './jwt'
 
 export async function connectToDB() {
     try {
@@ -20,16 +20,21 @@ export async function connectToDB() {
     }
 }
 
-export async function switchProfile(previousAccessToken: IdToken, user_id: string): Promise<IdToken> {
+export async function switchProfile(
+    previousAccessToken: IdToken,
+    user_id: string
+): Promise<IdToken> {
     const email = previousAccessToken.email
     const phone = previousAccessToken.phone
-    if(!email && !phone) { throw new Error("Access token does not contain valid email or phone") }
+    if (!email && !phone) {
+        throw new Error('Access token does not contain valid email or phone')
+    }
 
     const user = await User.findOneOrFail({
         where: [
-            {user_id, email},
-            {user_id, phone},
-        ]
+            { user_id, email },
+            { user_id, phone },
+        ],
     })
 
     return {
