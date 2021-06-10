@@ -1,14 +1,8 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-} from 'typeorm'
-
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 // Disable synchronization to avoid auto-migation and data loss
 // https://typeorm.io/#/migrations
-@Entity({synchronize: false})
+@Entity({ synchronize: false })
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     public user_id!: string

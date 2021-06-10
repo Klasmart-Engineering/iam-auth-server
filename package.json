@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/entry.ts",
-    "start:debug": "ts-node src/debug.ts"
+    "start:debug": "ts-node src/debug.ts",
+    "lint": "eslint . --ext .ts --fix",
+    "format": "prettier . --write"
   },
   "author": "",
   "license": "ISC",
@@ -19,7 +21,14 @@
     "@types/node": "14.17.3",
     "@types/uuid": "8.3.0",
     "@types/ws": "7.4.4",
+    "@typescript-eslint/eslint-plugin": "4.26.1",
+    "@typescript-eslint/parser": "4.26.1",
     "dotenv": "8.6.0",
+    "eslint": "7.28.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-import": "2.23.4",
+    "eslint-plugin-simple-import-sort": "7.0.0",
+    "prettier": "2.3.1",
     "ts-node": "9.1.1",
     "typescript": "4.3.2"
   },
