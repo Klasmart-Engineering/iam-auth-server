@@ -66,13 +66,13 @@ export class AuthServer {
         app.post(`${routePrefix}/transfer`, (req, res) =>
             server.transfer(req, res)
         )
-        app.all(`${routePrefix}/switch`, cors(corsConfiguration), (req, res) =>
+        app.all(`${routePrefix}/switch`, cors<Request>(corsConfiguration), (req, res) =>
             server.switchProfile(req, res)
         )
-        app.all(`${routePrefix}/refresh`, cors(corsConfiguration), (req, res) =>
+        app.all(`${routePrefix}/refresh`, cors<Request>(corsConfiguration), (req, res) =>
             server.refresh(req, res)
         )
-        app.all(`${routePrefix}/signout`, cors(corsConfiguration), (req, res) =>
+        app.all(`${routePrefix}/signout`, cors<Request>(corsConfiguration), (req, res) =>
             server.signOut(req, res)
         )
 

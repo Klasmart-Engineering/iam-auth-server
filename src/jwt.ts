@@ -6,12 +6,13 @@ import {
     sign,
     SignOptions,
     verify,
-    VerifyErrors,
     VerifyOptions,
 } from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
 
 import { JwtConfig } from './jwtConfig'
+import { RefreshToken } from './refreshToken'
+import { DecodedToken } from './types/token'
 
 export const accessTokenDuration =
     Number(process.env.JWT_ACCESS_TOKEN_DURATION) || 15 * 60 * 1000
@@ -82,8 +83,7 @@ export class JwtService {
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    public signRefreshToken(refreshToken: object) {
+    public signRefreshToken(refreshToken: RefreshToken) {
         return this.signJWT(
             refreshToken,
             this.config.secretOrPrivateKey,
@@ -91,8 +91,11 @@ export class JwtService {
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    private async signJWT(token: Object, secret: Secret, options: SignOptions) {
+    private async signJWT(
+        token: IdToken | RefreshToken,
+        secret: Secret,
+        options: SignOptions
+    ) {
         return new Promise<string>((resolve, reject) => {
             sign(token, secret, options, (err, encoded) => {
                 if (encoded) {
@@ -145,31 +148,25 @@ export async function transferToken(encodedToken: string): Promise<IdToken> {
     }
 
     return new Promise<IdToken>((resolve, reject) => {
-        verify(
-            encodedToken,
-            publicKeyOrSecret,
-            options,
-            // eslint-disable-next-line @typescript-eslint/ban-types
-            (err: VerifyErrors | null, decoded: object | undefined) => {
-                if (err) {
-                    reject(err)
+        verify(encodedToken, publicKeyOrSecret, options, (err, decoded) => {
+            if (err) {
+                reject(err)
+                return
+            }
+            if (decoded) {
+                try {
+                    const token = config.createToken(decoded as DecodedToken)
+                    resolve(token)
+                    return
+                } catch (e) {
+                    reject(e)
                     return
                 }
-                if (decoded) {
-                    try {
-                        const token = config.createToken(decoded)
-                        resolve(token)
-                        return
-                    } catch (e) {
-                        reject(e)
-                        return
-                    }
-                }
-                reject(
-                    'Unexpected error, token validation did not succeed but did not return an error'
-                )
             }
-        )
+            reject(
+                'Unexpected error, token validation did not succeed but did not return an error'
+            )
+        })
     })
 }
 
@@ -177,8 +174,7 @@ export interface IssuerConfig {
     getValidationParameter(
         keyId?: string
     ): Promise<{ publicKeyOrSecret: Secret; options: VerifyOptions }>
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    createToken(token: object): IdToken
+    createToken(token: DecodedToken): IdToken
 }
 
 class GoogleIssuerConfig implements IssuerConfig {
@@ -205,15 +201,15 @@ class GoogleIssuerConfig implements IssuerConfig {
         }
     }
 
-    public createToken(token: any): IdToken {
+    public createToken(token: DecodedToken): IdToken {
         function givenName() {
-            if (typeof token.given_name === 'string') {
+            if (typeof token?.given_name === 'string') {
                 return token.given_name.trim()
             }
             return undefined
         }
         function familyName() {
-            if (typeof token.family_name === 'string') {
+            if (typeof token?.family_name === 'string') {
                 return token.family_name.trim()
             }
             return undefined
@@ -233,7 +229,7 @@ class GoogleIssuerConfig implements IssuerConfig {
             return undefined
         }
 
-        let email = token.email
+        let email = token?.email as string | undefined
         if (!email) {
             throw new Error('No Email')
         }
@@ -265,16 +261,16 @@ class BadanamuIssuerConfig implements IssuerConfig {
             options: this.options,
         }
     }
-    public createToken(token: any): IdToken {
+    public createToken(token: DecodedToken): IdToken {
         function name() {
-            if (typeof token.name === 'string') {
+            if (typeof token?.name === 'string') {
                 return token.name
             }
             return undefined
         }
 
-        let email = token.em
-        let phone = token.pn
+        let email = token?.em as string | undefined
+        let phone = token?.pn as string | undefined
         if (!phone && !email) {
             throw new Error('Must specify email xor phone')
         }
@@ -316,16 +312,16 @@ class StandardIssuerConfig implements IssuerConfig {
             options: this.options,
         }
     }
-    public createToken(token: any): IdToken {
+    public createToken(token: DecodedToken): IdToken {
         function name() {
-            if (typeof token.name === 'string') {
+            if (typeof token?.name === 'string') {
                 return token.name
             }
             return undefined
         }
 
-        let email = token.email
-        let phone = token.phone
+        let email = token?.email as string | undefined
+        let phone = token?.phone as string | undefined
         if (email && phone) {
             throw new Error('Must not specify email and phone')
         }
@@ -414,5 +410,5 @@ function validateAlgorithm(alg?: any): Algorithm {
     throw new Error(`Unknown algorithm '${alg}'`)
 }
 
-const normalizedLowercaseTrimmed = (x: string) =>
+const normalizedLowercaseTrimmed = (x: string): string =>
     x.normalize('NFKC').toLowerCase().trim()
