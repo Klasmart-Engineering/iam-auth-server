@@ -1,7 +1,6 @@
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors, { CorsOptions } from 'cors'
-import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import { decode } from 'jsonwebtoken'
 
@@ -15,6 +14,7 @@ import {
 } from './jwt'
 import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
+import { compileDomainRegex } from './util/domain'
 import { validateString } from './util/validate'
 
 const domain = process.env.DOMAIN || ''
@@ -22,9 +22,7 @@ if (!domain) {
     throw new Error(`Please specify the DOMAIN enviroment variable`)
 }
 
-const domainRegex = new RegExp(
-    `^https://(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]{1,5})?$`
-)
+const domainRegex = compileDomainRegex(domain)
 const routePrefix = process.env.ROUTE_PREFIX || ''
 
 export class AuthServer {
