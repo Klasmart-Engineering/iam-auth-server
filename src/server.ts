@@ -23,7 +23,7 @@ if (!domain) {
 }
 
 const domainRegex = new RegExp(
-    `^(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]+)?$`
+    `^https://(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]{1,5})?$`
 )
 const routePrefix = process.env.ROUTE_PREFIX || ''
 
