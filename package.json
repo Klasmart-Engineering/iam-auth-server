@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "7.14.5",
     "@babel/preset-env": "7.14.5",
     "@babel/preset-typescript": "7.14.5",
     "@types/bcrypt": "3.0.1",
@@ -30,6 +31,7 @@
     "@types/ws": "7.4.4",
     "@typescript-eslint/eslint-plugin": "4.26.1",
     "@typescript-eslint/parser": "4.26.1",
+    "babel-plugin-transform-typescript-metadata": "0.3.2",
     "cookie": "0.4.0",
     "dotenv": "8.6.0",
     "eslint": "7.28.0",
