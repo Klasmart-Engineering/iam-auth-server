@@ -1,4 +1,4 @@
-import { compileDomainRegex } from './domain'
+import { compileDomainRegex } from '.'
 
 describe('CORS domain matching', () => {
     let domainRegex: RegExp
