@@ -349,7 +349,8 @@ class StandardIssuerConfig implements IssuerConfig {
     }
 }
 
-const issuers = new Map<string, IssuerConfig>([
+// Exported to enable temporary modification during testing
+export const issuers = new Map<string, IssuerConfig>([
     ['accounts.google.com', new GoogleIssuerConfig()],
     [
         'Badanamu AMS',
