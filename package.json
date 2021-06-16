@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/entry.ts",
-    "start:debug": "ts-node src/debug.ts",
+    "start": "ts-node src/index.ts",
     "lint": "eslint . --ext .ts --fix",
     "format": "prettier . --write",
     "test": "jest"

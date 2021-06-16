@@ -4,8 +4,6 @@ import { Secret, SignOptions } from 'jsonwebtoken'
 import { accessTokenDuration, refreshTokenDuration } from './jwt'
 import { retrieveJWTKeys } from './jwtKeyRetriever'
 
-const issuer = process.env.JWT_ISSUER
-
 export interface JwtConfig {
     secretOrPrivateKey: Secret
     accessTokenOptions: SignOptions
@@ -14,6 +12,7 @@ export interface JwtConfig {
 }
 
 export async function createJwtConfig(): Promise<JwtConfig> {
+    // TODO refer to `config` here rather than process.env
     let algorithm: string
     let secretOrPrivateKey: Secret
     let secretOrPublicKey: Secret
@@ -141,13 +140,13 @@ export async function createJwtConfig(): Promise<JwtConfig> {
     const accessTokenOptions = {
         algorithm,
         expiresIn: accessTokenDuration,
-        issuer,
+        issuer: process.env.JWT_ISSUER,
         noTimestamp: true,
     } as SignOptions
 
     const refreshTokenOptions = {
         algorithm,
-        issuer,
+        issuer: process.env.JWT_ISSUER,
         expiresIn: refreshTokenDuration,
         subject: 'refresh',
     } as SignOptions
