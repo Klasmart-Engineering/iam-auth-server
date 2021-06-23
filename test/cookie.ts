@@ -3,11 +3,7 @@ import validator from 'validator'
 
 import config from '../src/config'
 import { parseCookies, ParsedCookie } from '../src/cookies'
-import {
-    testInternalIssuer,
-    validJWTPayload,
-    validRefreshPayload,
-} from './jwt'
+import { testInternalIssuer, validJWTPayload, validRefreshPayload } from './jwt'
 import { Response } from './response'
 
 // TODO resolve typescript issues
@@ -26,6 +22,22 @@ export function hasSetCookies(res: Response) {
     expect(Object.keys(cookies)).toStrictEqual(['access', 'refresh'])
     // Store cookies on response for further assertions
     res.cookies = cookies
+}
+
+export function hasUnsetCookies(res: Response) {
+    const cookies = parseCookies(res.res)
+    expect(Object.keys(cookies)).toStrictEqual(['access', 'refresh'])
+
+    // Cookies are "unset" by setting expiry in the past
+    expect(cookies['access']).toMatchObject({
+        Domain: 'kidsloop.test',
+        Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
+    })
+
+    expect(cookies['refresh']).toMatchObject({
+        Path: '/refresh',
+        Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
+    })
 }
 
 export function hasValidAccessCookie(res: Response) {
