@@ -29,7 +29,7 @@ describe('/transfer', () => {
 
     describe('responds with 400 Bad Request when', () => {
         it('there is no `token` in the request body', () => {
-            request(app).post('/transfer').send().expect(invalidToken400)
+            return request(app).post('/transfer').send().expect(invalidToken400)
         })
 
         it('the JWT has no issuer', async () => {
