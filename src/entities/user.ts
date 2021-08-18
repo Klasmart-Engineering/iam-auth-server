@@ -2,7 +2,7 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 // Disable synchronization to avoid auto-migation and data loss
 // https://typeorm.io/#/migrations
-@Entity({ synchronize: false })
+@Entity({ synchronize: process.env.NODE_ENV === 'test' })
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     public user_id!: string

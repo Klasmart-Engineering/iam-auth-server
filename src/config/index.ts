@@ -1,9 +1,17 @@
 import { CorsOptions } from 'cors'
 import dotenv from 'dotenv'
+import path from 'path'
 
 import { compileDomainRegex } from '../domain'
 
-dotenv.config({ path: __dirname + '../../.env' })
+const root = path.join(__dirname, '..', '..')
+
+dotenv.config({
+    path:
+        process.env.NODE_ENV === 'test'
+            ? path.resolve(root, '.env.test')
+            : path.resolve(root, '.env'),
+})
 
 const config = {
     domain: process.env.DOMAIN || '',
@@ -44,4 +52,5 @@ const corsConfiguration: CorsOptions = {
     },
 }
 
+export { default as dbConfig } from './db'
 export { corsConfiguration, config as default, domainRegex }

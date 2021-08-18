@@ -107,6 +107,36 @@ export const validAccessCookie = cookie.serialize('access', validInternalJWT, {
     maxAge: 10_000,
 })
 
+// Strip last character from signature to invalidate
+const invalidInternalJWT = validInternalJWT.slice(0, -1)
+
+export const invalidAccessCookie = cookie.serialize(
+    'access',
+    invalidInternalJWT,
+    {
+        domain: 'kidsloop.test',
+        maxAge: 10_000,
+    }
+)
+
+const noContactInfoInternalJWT = sign(
+    Object.assign({}, validJWTPayload, { email: undefined, phone: undefined }),
+    testInternalIssuer.privateKey,
+    {
+        algorithm: 'RS256',
+        expiresIn: '1h',
+    }
+)
+
+export const noContactInfoAccessCookie = cookie.serialize(
+    'access',
+    noContactInfoInternalJWT,
+    {
+        domain: 'kidsloop.test',
+        maxAge: 10_000,
+    }
+)
+
 export const expiredInternalJWT = sign(
     validJWTPayload,
     testInternalIssuer.privateKey,
@@ -161,7 +191,7 @@ export const noSessionRefreshCookie = cookie.serialize(
     }
 )
 
-// Strinp last character from signature to invalidate
+// Strip last character from signature to invalidate
 const invalidRefreshJWT = sign(
     validRefreshPayload,
     testInternalIssuer.privateKey,

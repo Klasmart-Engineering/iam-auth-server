@@ -1,20 +1,20 @@
-import { createConnection, getConnection } from 'typeorm'
+import { Connection, createConnection, getConnection } from 'typeorm'
 
-export const connection = {
-    options: {
-        name: 'default',
-        type: 'postgres',
-        // TODO use config approach, which defaults to the same as DATABASE_URL but with `test` prefix
-        url: process.env.DATABASE_URL,
-        entities: ['src/entities/*.ts'],
-    },
+import dbConfig from '../src/config/db'
 
+type ITestConnectionManager = {
+    create(): Promise<Connection>
+    close(): Promise<void>
+    clear(): Promise<void>
+}
+
+export const TestConnectionManager: ITestConnectionManager = {
     async create() {
-        await createConnection()
+        return createConnection(dbConfig)
     },
 
     async close() {
-        getConnection().close()
+        return getConnection().close()
     },
 
     async clear() {
@@ -23,7 +23,7 @@ export const connection = {
 
         entities.forEach(async (entity) => {
             const repository = conn.getRepository(entity.name)
-            await repository.query(`DELETE FROM ${entity.tableName}`)
+            await repository.clear()
         })
     },
 }
