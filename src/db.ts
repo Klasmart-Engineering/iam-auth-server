@@ -1,7 +1,7 @@
 import { createConnection } from 'typeorm'
 
 import { User } from './entities/user'
-import { IdToken } from './jwt'
+import { IdToken } from './types/token'
 
 export async function connectToDB() {
     try {

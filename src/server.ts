@@ -1,22 +1,24 @@
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors, { CorsOptions } from 'cors'
+import * as dotenv from 'dotenv'
 import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import { decode } from 'jsonwebtoken'
 
+import {transferAzureB2CToken} from './azureB2C'
 import { connectToDB, switchProfile } from './db'
 import {
     accessTokenDuration,
     httpsOnlyCookie,
     JwtService,
     refreshTokenDuration,
-    transferToken,
-} from './jwt'
+    transferToken} from './jwt'
 import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'
 
+dotenv.config
 const domain = process.env.DOMAIN || ''
 if (!domain) {
     throw new Error(`Please specify the DOMAIN enviroment variable`)
@@ -103,7 +105,12 @@ export class AuthServer {
             }
             const session_name = req.get('User-Agent') || 'Unkown Device'
 
-            const token = await transferToken(encodedToken)
+            let token;
+            if (process.env.AZURE_B2C_ENABLED === 'true') {
+                token = await transferAzureB2CToken(req)
+            } else {
+                token = await transferToken(encodedToken)
+            }
 
             const accessToken = await this.jwtService.signAccessToken(token)
             const refreshToken = await this.refreshTokenManager.createSession(
