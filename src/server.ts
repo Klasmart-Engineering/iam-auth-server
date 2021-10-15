@@ -6,7 +6,7 @@ import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import { decode } from 'jsonwebtoken'
 
-import {transferAzureB2CToken} from './azureB2C'
+import transferAzureB2CToken from './azureB2C'
 import { connectToDB, switchProfile } from './db'
 import {
     accessTokenDuration,
@@ -77,11 +77,10 @@ export class AuthServer {
         app.all(`${routePrefix}/signout`, cors<Request>(corsConfiguration), (req, res) =>
             server.signOut(req, res)
         )
-
         return new Promise<AuthServer>((resolve, reject) => {
             const port = process.env.PORT || 8080
             app.listen(port, () => {
-                console.log(`🌎 Server ready at http://localhost:${port}`)
+                console.log(`🌎 Server ready at http://localhost:${port}/`)
                 resolve(server)
             })
         })
@@ -99,16 +98,15 @@ export class AuthServer {
 
     private async transfer(req: Request, res: Response) {
         try {
-            const encodedToken = validateString(req.body.token)
-            if (!encodedToken) {
-                throw new Error('No token')
-            }
             const session_name = req.get('User-Agent') || 'Unkown Device'
-
             let token;
             if (process.env.AZURE_B2C_ENABLED === 'true') {
                 token = await transferAzureB2CToken(req)
             } else {
+                const encodedToken = validateString(req.body.token)
+                if (!encodedToken) {
+                    throw new Error('No token')
+                }
                 token = await transferToken(encodedToken)
             }
 

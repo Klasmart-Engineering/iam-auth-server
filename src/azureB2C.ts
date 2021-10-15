@@ -48,7 +48,6 @@ const bearerStrategy = () =>
             done(null, {}, token)
         }
     )
-
 if (process.env.AZURE_B2C_ENABLED === 'true') {
     passport.initialize()
     passport.use(bearerStrategy())
