@@ -48,6 +48,7 @@ const bearerStrategy = () =>
             done(null, {}, token)
         }
     )
+    
 if (process.env.AZURE_B2C_ENABLED === 'true') {
     passport.initialize()
     passport.use(bearerStrategy())
@@ -64,14 +65,14 @@ export async function transferAzureB2CToken(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (err: Error | null, user: boolean | never, info: any) => {
                 if (err) {
-                    reject({ message: 'Something went wrong' })
+                    reject(err)
                 }
                 if (!user) {
                     reject({ message: 'Invalid token' })
                 }
                 const idToken = {
                     name: info.name,
-                    email: info.emails?.length > 0 ? info.emails[0] : '',
+                    email: info.extension_userId ? info.extension_userId : null
                 }
                 resolve(idToken)
             }

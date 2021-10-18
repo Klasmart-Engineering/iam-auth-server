@@ -13,6 +13,7 @@ import jwksClient from 'jwks-rsa'
 import { JwtConfig } from './jwtConfig'
 import { RefreshToken } from './refreshToken'
 import { DecodedToken, IdToken } from './types/token'
+import { validateString } from './util/validate'
 
 export const accessTokenDuration =
     Number(process.env.JWT_ACCESS_TOKEN_DURATION) || 15 * 60 * 1000
@@ -109,7 +110,11 @@ export class JwtService {
 }
 
 
-export async function transferToken(encodedToken: string): Promise<IdToken> {
+export async function transferToken(tokenToTransfer: string): Promise<IdToken> {
+    const encodedToken = validateString(tokenToTransfer)
+        if (!encodedToken) {
+            throw new Error('No token')
+    }
     const { header, payload } = decode(encodedToken, { complete: true }) as {
         header: JwtHeader
         payload: any

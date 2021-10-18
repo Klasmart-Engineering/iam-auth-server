@@ -1,7 +1,6 @@
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors, { CorsOptions } from 'cors'
-import * as dotenv from 'dotenv'
 import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import { decode } from 'jsonwebtoken'
@@ -18,7 +17,6 @@ import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'
 
-dotenv.config
 const domain = process.env.DOMAIN || ''
 if (!domain) {
     throw new Error(`Please specify the DOMAIN enviroment variable`)
@@ -28,6 +26,7 @@ const domainRegex = new RegExp(
     `^https://(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]{1,5})?$`
 )
 const routePrefix = process.env.ROUTE_PREFIX || ''
+const IS_AZURE_B2C_ENABLED = process.env.AZURE_B2C_ENABLED === 'true'
 
 export class AuthServer {
     public static async create() {
@@ -99,17 +98,7 @@ export class AuthServer {
     private async transfer(req: Request, res: Response) {
         try {
             const session_name = req.get('User-Agent') || 'Unkown Device'
-            let token;
-            if (process.env.AZURE_B2C_ENABLED === 'true') {
-                token = await transferAzureB2CToken(req)
-            } else {
-                const encodedToken = validateString(req.body.token)
-                if (!encodedToken) {
-                    throw new Error('No token')
-                }
-                token = await transferToken(encodedToken)
-            }
-
+            const token = (IS_AZURE_B2C_ENABLED) ? await transferAzureB2CToken(req) : await transferToken(req.body.token);
             const accessToken = await this.jwtService.signAccessToken(token)
             const refreshToken = await this.refreshTokenManager.createSession(
                 session_name,
