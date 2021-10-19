@@ -5,14 +5,14 @@ import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import { decode } from 'jsonwebtoken'
 
+import transferAzureB2CToken from './azureB2C'
 import { connectToDB, switchProfile } from './db'
 import {
     accessTokenDuration,
     httpsOnlyCookie,
     JwtService,
     refreshTokenDuration,
-    transferToken,
-} from './jwt'
+    transferToken} from './jwt'
 import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'
@@ -26,6 +26,7 @@ const domainRegex = new RegExp(
     `^https://(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]{1,5})?$`
 )
 const routePrefix = process.env.ROUTE_PREFIX || ''
+const IS_AZURE_B2C_ENABLED = process.env.AZURE_B2C_ENABLED === 'true'
 
 export class AuthServer {
     public static async create() {
@@ -75,11 +76,10 @@ export class AuthServer {
         app.all(`${routePrefix}/signout`, cors<Request>(corsConfiguration), (req, res) =>
             server.signOut(req, res)
         )
-
         return new Promise<AuthServer>((resolve, reject) => {
             const port = process.env.PORT || 8080
             app.listen(port, () => {
-                console.log(`🌎 Server ready at http://localhost:${port}`)
+                console.log(`🌎 Server ready at http://localhost:${port}/`)
                 resolve(server)
             })
         })
@@ -97,14 +97,8 @@ export class AuthServer {
 
     private async transfer(req: Request, res: Response) {
         try {
-            const encodedToken = validateString(req.body.token)
-            if (!encodedToken) {
-                throw new Error('No token')
-            }
             const session_name = req.get('User-Agent') || 'Unkown Device'
-
-            const token = await transferToken(encodedToken)
-
+            const token = (IS_AZURE_B2C_ENABLED) ? await transferAzureB2CToken(req) : await transferToken(req.body.token);
             const accessToken = await this.jwtService.signAccessToken(token)
             const refreshToken = await this.refreshTokenManager.createSession(
                 session_name,

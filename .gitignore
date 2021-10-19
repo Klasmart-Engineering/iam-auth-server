@@ -3,3 +3,5 @@
 **/webpack-stats.html
 .idea/
 .env
+**/.DS_Store
+keys

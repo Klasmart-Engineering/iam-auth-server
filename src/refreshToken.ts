@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
-import { IdToken, JwtService } from './jwt'
+import { JwtService } from './jwt'
+import { IdToken } from './types/token'
 
 export class RefreshTokenManager {
     public static create(jwtService: JwtService) {
