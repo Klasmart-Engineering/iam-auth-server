@@ -348,14 +348,17 @@ const issuers = new Map<string, IssuerConfig>([
     [
         'Badanamu AMS',
         new BadanamuIssuerConfig(
-            [
-                '-----BEGIN PUBLIC KEY-----',
-                'MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1',
-                '8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf',
-                'H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP',
-                'wTT7osO/AOfbIsktAgMBAAE=',
-                '-----END PUBLIC KEY-----',
-            ].join('\n'),
+            // Default to production AMS public key, but optionally accept a different public key
+            // from the environment (e.g. dev AMS public key)
+            process.env.AMS_PUBLIC_KEY ||
+                [
+                    '-----BEGIN PUBLIC KEY-----',
+                    'MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHGWLk3zzoWJ6nJhHEE7LtM9LCa1',
+                    '8OSdVQPwvrFxBUTRHz0Hl+qdNMNHJIJkj9NEjL+kaRo0XxsGdrR6NGxL2/WiX3Zf',
+                    'H+xCTJ4Wl3pIc3Lrjc8SJ7OcS5PmLc0uXpb0bDGen9KcI3oVe770y6mT8PWIgqjP',
+                    'wTT7osO/AOfbIsktAgMBAAE=',
+                    '-----END PUBLIC KEY-----',
+                ].join('\n'),
             {
                 algorithms: ['RS256', 'RS384', 'RS512'],
             }
