@@ -1,7 +1,5 @@
-import { AuthServer } from './server'
+import 'newrelic'
 
-async function main() {
-    await AuthServer.create()
-}
+import { startServer } from './server'
 
-main()
+startServer()

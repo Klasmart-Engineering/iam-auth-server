@@ -235,3 +235,7 @@ export class AuthServer {
         })
     }
 }
+
+export async function startServer() {
+    await AuthServer.create()
+}
