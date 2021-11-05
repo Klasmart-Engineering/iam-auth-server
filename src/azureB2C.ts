@@ -70,7 +70,7 @@ export async function transferAzureB2CToken(
                 if (!user) {
                     return reject({ message: 'Invalid token' })
                 }
-                if(!info.emails || info.emails.length===0) {
+                if(!info.emails || info.emails.length === 0) {
                     return reject({ message: 'missing emails claim' })
                 }
                 const idToken = {
