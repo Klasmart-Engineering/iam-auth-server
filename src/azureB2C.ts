@@ -7,8 +7,9 @@ import {
 } from 'passport-azure-ad'
 
 import { 
-AzureB2CTokenPayload,
-    IdToken} from './types/token'
+    AzureB2CTokenPayload,
+    IdToken
+} from './types/token'
 
 const credentials = {
     tenantName: process.env.AZURE_B2C_TENANT_NAME,
