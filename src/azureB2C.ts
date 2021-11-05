@@ -7,7 +7,8 @@ import {
 } from 'passport-azure-ad'
 
 import { 
-    IdToken 
+    AzureB2CTokenPayload,
+    IdToken
 } from './types/token'
 
 const credentials = {
@@ -28,6 +29,7 @@ const settings = {
     passReqToCallback: false,
     loggingLevel: 'warn',
 }
+
 
 const options: IBearerStrategyOptionWithRequest = {
     identityMetadata: `https://${credentials.tenantName}.b2clogin.com/${credentials.tenantName}.onmicrosoft.com/${policies.policyName}/${metadata.version}/${metadata.discovery}`,
@@ -57,31 +59,28 @@ if (process.env.AZURE_B2C_ENABLED === 'true') {
 export async function transferAzureB2CToken(
     req: Request
 ): Promise<IdToken> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = await new Promise<any>((resolve, reject) => {
+    return new Promise<IdToken>((resolve, reject) => {
         passport.authenticate(
             'oauth-bearer',
             { session: false },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err: Error | null, user: boolean | never, info: any) => {
+            (err: Error | null, user: boolean | never, info: AzureB2CTokenPayload) => {
                 if (err) {
-                    reject(err)
+                    return reject(err)
                 }
                 if (!user) {
-                    reject({ message: 'Invalid token' })
+                    return reject({ message: 'Invalid token' })
                 }
-                if(info.emails && info.emails.length===0) {
-                    reject({message: 'missing emails claim'})
+                if(!info.emails || info.emails.length === 0) {
+                    return reject({ message: 'missing emails claim' })
                 }
                 const idToken = {
                     name: info.name,
                     email: info.emails[0]
                 }
-                resolve(idToken)
+                return resolve(idToken)
             }
         )(req)
     })
-    return token
 }
 
 export default transferAzureB2CToken
