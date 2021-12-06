@@ -3,36 +3,30 @@ import cookieParser from 'cookie-parser'
 import cors, { CorsOptions } from 'cors'
 import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
+import type http from 'http'
 import { decode } from 'jsonwebtoken'
 
-import transferAzureB2CToken from './azureB2C'
+import config from './config'
 import { connectToDB, switchProfile } from './db'
-import {
-    accessTokenDuration,
-    httpsOnlyCookie,
-    JwtService,
-    refreshTokenDuration,
-    transferToken} from './jwt'
+import { decodeAndStandardizeThirdPartyJWT, JwtService } from './jwt'
 import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'
 
-const domain = process.env.DOMAIN || ''
-if (!domain) {
+if (!config.server.domain) {
     throw new Error(`Please specify the DOMAIN enviroment variable`)
 }
 
 const domainRegex = new RegExp(
-    `^https://(.*\\.)?${escapeStringRegexp(domain)}(:[0-9]{1,5})?$`
+    `^https://(.*\\.)?${escapeStringRegexp(
+        config.server.domain
+    )}(:[0-9]{1,5})?$`
 )
-const routePrefix = process.env.ROUTE_PREFIX || ''
-const IS_AZURE_B2C_ENABLED = process.env.AZURE_B2C_ENABLED === 'true'
 
 export class AuthServer {
-    public static async create() {
+    public static async create(): Promise<express.Express> {
         const jwtConfig = await createJwtConfig()
         const jwtService = JwtService.create(jwtConfig)
-        await connectToDB()
         const tokenManager = RefreshTokenManager.create(jwtService)
         const server = new AuthServer(tokenManager, jwtService)
 
@@ -64,25 +58,25 @@ export class AuthServer {
             res.status(200)
             res.end()
         })
-        app.post(`${routePrefix}/transfer`, (req, res) =>
+        app.post(`${config.server.routePrefix}/transfer`, (req, res) =>
             server.transfer(req, res)
         )
-        app.all(`${routePrefix}/switch`, cors<Request>(corsConfiguration), (req, res) =>
-            server.switchProfile(req, res)
+        app.all(
+            `${config.server.routePrefix}/switch`,
+            cors<Request>(corsConfiguration),
+            (req, res) => server.switchProfile(req, res)
         )
-        app.all(`${routePrefix}/refresh`, cors<Request>(corsConfiguration), (req, res) =>
-            server.refresh(req, res)
+        app.all(
+            `${config.server.routePrefix}/refresh`,
+            cors<Request>(corsConfiguration),
+            (req, res) => server.refresh(req, res)
         )
-        app.all(`${routePrefix}/signout`, cors<Request>(corsConfiguration), (req, res) =>
-            server.signOut(req, res)
+        app.all(
+            `${config.server.routePrefix}/signout`,
+            cors<Request>(corsConfiguration),
+            (req, res) => server.signOut(req, res)
         )
-        return new Promise<AuthServer>((resolve, reject) => {
-            const port = process.env.PORT || 8080
-            app.listen(port, () => {
-                console.log(`🌎 Server ready at http://localhost:${port}/`)
-                resolve(server)
-            })
-        })
+        return app
     }
 
     private refreshTokenManager: RefreshTokenManager
@@ -97,12 +91,11 @@ export class AuthServer {
 
     private async transfer(req: Request, res: Response) {
         try {
-            const session_name = req.get('User-Agent') || 'Unkown Device'
-            const token = (IS_AZURE_B2C_ENABLED) ? await transferAzureB2CToken(req) : await transferToken(req.body.token);
-            const accessToken = await this.jwtService.signAccessToken(token)
+            // TODO: refactor decodeAndStandardizeThirdPartyJWT to split out extraction/decode/standardize logic to separate functions [IAM-506]
+            const payload = await decodeAndStandardizeThirdPartyJWT(req)
+            const accessToken = await this.jwtService.signAccessToken(payload)
             const refreshToken = await this.refreshTokenManager.createSession(
-                session_name,
-                token
+                payload
             )
             this.setTokenCookies(res, refreshToken, accessToken)
 
@@ -136,11 +129,9 @@ export class AuthServer {
                 previousEncodedAccessToken
             )
 
-            const session_name = req.get('User-Agent') || 'Unkown Device'
             const newToken = await switchProfile(previousAccessToken, user_id)
             const accessToken = await this.jwtService.signAccessToken(newToken)
             const refreshToken = await this.refreshTokenManager.createSession(
-                session_name,
                 newToken
             )
             this.setTokenCookies(res, refreshToken, accessToken)
@@ -171,7 +162,6 @@ export class AuthServer {
                 }
             }
 
-            const session_name = req.get('User-Agent') || 'Unkown Device'
             const previousEncodedRefreshToken = validateString(
                 req.cookies.refresh
             )
@@ -181,7 +171,6 @@ export class AuthServer {
 
             const { encodedAccessToken, encodedRefreshToken } =
                 await this.refreshTokenManager.refreshSession(
-                    session_name,
                     previousEncodedRefreshToken
                 )
             this.setTokenCookies(res, encodedRefreshToken, encodedAccessToken)
@@ -206,7 +195,7 @@ export class AuthServer {
 
     private signOut(req: Request, res: Response) {
         try {
-            res.clearCookie('access', { domain })
+            res.clearCookie('access', { domain: config.server.domain })
                 .clearCookie('refresh', { path: '/refresh' })
                 .status(200)
                 .end()
@@ -222,20 +211,28 @@ export class AuthServer {
         accessToken: string
     ) {
         res.cookie('access', accessToken, {
-            domain,
+            domain: config.server.domain,
             httpOnly: true,
-            maxAge: accessTokenDuration * 1000,
-            secure: httpsOnlyCookie,
+            maxAge: config.cookies.access.duration * 1000,
+            secure: config.cookies.httpsOnly,
         })
         res.cookie('refresh', refreshToken, {
             path: '/refresh',
             httpOnly: true,
-            maxAge: refreshTokenDuration * 1000,
-            secure: httpsOnlyCookie,
+            maxAge: config.cookies.refresh.duration * 1000,
+            secure: config.cookies.httpsOnly,
         })
     }
 }
 
 export async function startServer() {
-    await AuthServer.create()
+    await connectToDB()
+    const app = await AuthServer.create()
+    return new Promise<http.Server>((resolve, reject) => {
+        const port = config.server.port
+        const server = app.listen(port, () => {
+            console.log(`🌎 Server ready at http://localhost:${port}/`)
+            resolve(server)
+        })
+    })
 }

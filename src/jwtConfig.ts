@@ -1,10 +1,8 @@
 import { readFileSync } from 'fs'
 import { Secret, SignOptions } from 'jsonwebtoken'
 
-import { accessTokenDuration, refreshTokenDuration } from './jwt'
+import config from './config'
 import { retrieveJWTKeys } from './jwtKeyRetriever'
-
-const issuer = process.env.JWT_ISSUER
 
 export interface JwtConfig {
     secretOrPrivateKey: Secret
@@ -140,15 +138,15 @@ export async function createJwtConfig(): Promise<JwtConfig> {
 
     const accessTokenOptions = {
         algorithm,
-        expiresIn: accessTokenDuration,
-        issuer,
+        expiresIn: config.cookies.access.duration,
+        issuer: config.jwt.issuer,
         noTimestamp: true,
     } as SignOptions
 
     const refreshTokenOptions = {
         algorithm,
-        issuer,
-        expiresIn: refreshTokenDuration,
+        issuer: config.jwt.issuer,
+        expiresIn: config.cookies.refresh.duration,
         subject: 'refresh',
     } as SignOptions
 

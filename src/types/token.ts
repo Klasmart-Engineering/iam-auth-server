@@ -1,6 +1,4 @@
-import {
-    ITokenPayload,
-} from 'passport-azure-ad'
+import { ITokenPayload } from 'passport-azure-ad'
 
 export type DecodedToken = Record<string, unknown>
 
@@ -18,5 +16,8 @@ export interface IdToken {
 }
 
 export interface AzureB2CTokenPayload extends ITokenPayload {
-    emails?: string[] 
+    emails?: string[]
+    // Provided in actual JWTs but not present in ITokenPayload type
+    tfp: string
+    nonce: string
 }

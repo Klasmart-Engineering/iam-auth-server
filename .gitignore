@@ -6,3 +6,5 @@
 **/.DS_Store
 keys
 newrelic_agent.log
+coverage
+!test/.env

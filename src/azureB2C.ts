@@ -23,6 +23,7 @@ const metadata = {
 }
 const settings = {
     isB2C: true,
+    issuer: `https://${metadata.domain}/${credentials.tenantID}/${metadata.version}/`,
     validateIssuer: true,
     passReqToCallback: false,
     loggingLevel: 'warn',
@@ -34,6 +35,7 @@ const options: IBearerStrategyOptionWithRequest = {
     audience: credentials.clientID,
     policyName: policies.policyName,
     isB2C: settings.isB2C,
+    issuer: settings.issuer,
     validateIssuer: settings.validateIssuer,
     loggingLevel: 'info',
     passReqToCallback: settings.passReqToCallback,
@@ -53,21 +55,51 @@ if (process.env.AZURE_B2C_ENABLED === 'true') {
     passport.use(bearerStrategy())
 }
 
-export async function transferAzureB2CToken(req: Request): Promise<IdToken> {
+export const isAzureB2CToken = (payload: {
+    iss?: unknown
+    [key: string]: unknown
+}): boolean => {
+    const { iss } = payload
+
+    if (typeof iss !== 'string' || iss === '')
+        throw new Error('Invalid iss value in payload')
+
+    return iss === settings.issuer
+}
+
+interface AuthenticateResult {
+    err: Error | null
+    user: Record<string, never> | false
+    info: AzureB2CTokenPayload | string | Error
+}
+
+export type AuthenticateCallback = (
+    err: AuthenticateResult['err'],
+    user: AuthenticateResult['user'],
+    info: AuthenticateResult['info']
+) => void
+
+export const transferAzureB2CToken = async (req: Request): Promise<IdToken> => {
     return new Promise<IdToken>((resolve, reject) => {
         passport.authenticate(
             'oauth-bearer',
             { session: false },
             (
-                err: Error | null,
-                user: boolean | never,
-                info: AzureB2CTokenPayload
+                err: AuthenticateResult['err'],
+                user: AuthenticateResult['user'],
+                info: AuthenticateResult['info']
             ) => {
                 if (err) {
                     return reject(err)
                 }
                 if (!user) {
                     return reject({ message: 'Invalid token' })
+                }
+                if (typeof info === 'string') {
+                    return reject({ message: info })
+                }
+                if (info instanceof Error) {
+                    return reject(info)
                 }
                 if (!info.emails || info.emails.length === 0) {
                     return reject({ message: 'missing emails claim' })

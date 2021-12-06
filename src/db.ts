@@ -1,18 +1,12 @@
 import { createConnection } from 'typeorm'
 
+import config from './config'
 import { User } from './entities/user'
 import { IdToken } from './types/token'
 
 export async function connectToDB() {
     try {
-        const connection = await createConnection({
-            name: 'default',
-            type: 'postgres',
-            url: process.env.DATABASE_URL,
-            synchronize: false,
-            logging: Boolean(process.env.DATABASE_LOGGING),
-            entities: ['src/entities/*.ts'],
-        })
+        const connection = await createConnection(config.db)
         console.log('🐘 Connected to postgres')
         return connection
     } catch (e) {

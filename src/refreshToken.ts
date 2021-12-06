@@ -13,7 +13,7 @@ export class RefreshTokenManager {
         this.jwtService = jwtService
     }
 
-    public async createSession(session_name: string, token: IdToken) {
+    public async createSession(token: IdToken) {
         const session_id = v4()
         const encodedToken = await this.jwtService.signRefreshToken({
             session_id,
@@ -23,7 +23,6 @@ export class RefreshTokenManager {
     }
 
     public async refreshSession(
-        session_name: string,
         previousEncodedRefreshToken: string
     ) {
         const previousRefreshToken = (await this.jwtService.verifyRefreshToken(
@@ -39,18 +38,11 @@ export class RefreshTokenManager {
 
         const [encodedAccessToken, encodedRefreshToken] = await Promise.all([
             this.jwtService.signAccessToken(token),
-            this.createSession(session_name, token),
+            this.createSession(token),
         ])
 
         return { encodedRefreshToken, encodedAccessToken }
     }
-}
-
-export interface Session {
-    session_id: string
-    session_name: string
-    jwt: string
-    creation: number
 }
 
 export interface RefreshToken {

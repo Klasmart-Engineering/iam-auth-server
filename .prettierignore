@@ -4,3 +4,4 @@
 **/bitbucket-pipelines.yml
 dist
 node_modules
+coverage

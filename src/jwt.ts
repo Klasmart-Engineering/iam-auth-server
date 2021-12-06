@@ -1,3 +1,4 @@
+import { Request } from 'express'
 import {
     Algorithm,
     decode,
@@ -10,16 +11,12 @@ import {
 } from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
 
+import transferAzureB2CToken, { isAzureB2CToken } from './azureB2C'
+import config from './config'
 import { JwtConfig } from './jwtConfig'
 import { RefreshToken } from './refreshToken'
 import { DecodedToken, IdToken } from './types/token'
 import { validateString } from './util/validate'
-
-export const accessTokenDuration =
-    Number(process.env.JWT_ACCESS_TOKEN_DURATION) || 15 * 60 * 1000
-export const refreshTokenDuration =
-    Number(process.env.JWT_REFRESH_TOKEN_DURATION) || 14 * 24 * 60 * 60 * 1000
-export const httpsOnlyCookie = process.env.JWT_COOKIE_ALLOW_HTTP === undefined
 
 export class JwtService {
     public static create(jwtConfig: JwtConfig) {
@@ -109,11 +106,10 @@ export class JwtService {
     }
 }
 
-
 export async function transferToken(tokenToTransfer: string): Promise<IdToken> {
     const encodedToken = validateString(tokenToTransfer)
-        if (!encodedToken) {
-            throw new Error('No token')
+    if (!encodedToken) {
+        throw new Error('No token')
     }
     const { header, payload } = decode(encodedToken, { complete: true }) as {
         header: JwtHeader
@@ -126,14 +122,13 @@ export async function transferToken(tokenToTransfer: string): Promise<IdToken> {
         throw new Error('Unknown issuer')
     }
 
-    const config = issuers.get(issuer)
-    if (!config) {
+    const issuerConfig = issuers.get(issuer)
+    if (!issuerConfig) {
         throw new Error(`Unknown Issuer(${issuer})`)
     }
 
-    const { publicKeyOrSecret, options } = await config.getValidationParameter(
-        keyId
-    )
+    const { publicKeyOrSecret, options } =
+        await issuerConfig.getValidationParameter(keyId)
     if (!publicKeyOrSecret) {
         throw new Error(
             `Unable to get verification secret or public key for Issuer(${payload.iss}) and KeyId(${header.kid})`
@@ -148,7 +143,9 @@ export async function transferToken(tokenToTransfer: string): Promise<IdToken> {
             }
             if (decoded) {
                 try {
-                    const token = config.createToken(decoded as DecodedToken)
+                    const token = issuerConfig.createToken(
+                        decoded as DecodedToken
+                    )
                     resolve(token)
                     return
                 } catch (e) {
@@ -162,7 +159,6 @@ export async function transferToken(tokenToTransfer: string): Promise<IdToken> {
         })
     })
 }
-
 
 export interface IssuerConfig {
     getValidationParameter(
@@ -343,7 +339,8 @@ class StandardIssuerConfig implements IssuerConfig {
     }
 }
 
-const issuers = new Map<string, IssuerConfig>([
+// Exported purely to add a test-only issuer
+export const issuers = new Map<string, IssuerConfig>([
     ['accounts.google.com', new GoogleIssuerConfig()],
     [
         'Badanamu AMS',
@@ -409,3 +406,119 @@ function validateAlgorithm(alg?: any): Algorithm {
 
 const normalizedLowercaseTrimmed = (x: string): string =>
     x.normalize('NFKC').toLowerCase().trim()
+
+export const decodeAndStandardizeThirdPartyJWT = (
+    req: Request
+): Promise<IdToken> => {
+    // Avoid unecessary JWT decoding to check issuer, and revert to original behaviour
+    if (!config.azureB2C.isEnabled) return transferToken(req.body.token)
+
+    const { token, location } = extractTokenFromRequest(req)
+
+    const payload = decode(token, { json: true })
+
+    if (payload === null) throw new Error('JWT could not be decoded')
+
+    // Use old 3rd party issuer behaviour
+    if (!isAzureB2CToken(payload)) return transferToken(req.body.token)
+
+    if (location === 'body') {
+        // passport-azure-ad expects the access token as either:
+        //  - "Authorization": `Bearer ${token}` header
+        //  - `request.body.access_token`
+
+        // In order to maintain our old API contract and support old clients (specifically the mobile app),
+        // we need to accept the token as `request.body.token`
+
+        // The alternative to modifying the request would be to reimplement our own Passport strategy,
+        // as checking the `token` key in the body is deeply embedded in the passport-azure-ad `authenticate` function
+
+        // https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/maintenance/passport-azure-ad#4-usage
+        delete req.body.token
+        req.body.access_token = token
+    }
+
+    return transferAzureB2CToken(req)
+}
+
+/**
+ *
+ * Conditionally extract a JWT from either the `Authorization` header if present, else check
+ * req.body
+ */
+export const extractTokenFromRequest = (
+    req: Request
+): { token: string; location: 'header' | 'body' } => {
+    if (req.headers.authorization !== undefined) {
+        return {
+            token: extractTokenFromAuthorizationHeader(
+                req.headers.authorization
+            ),
+            location: 'header',
+        }
+    }
+
+    if ('token' in req.body) {
+        return { token: extractTokenFromBody(req.body), location: 'body' }
+    }
+
+    throw new MissingTokenError()
+}
+
+const extractTokenFromAuthorizationHeader = (
+    authorizationHeader: string
+): string => {
+    const authorization = authorizationHeader.split(' ')
+    if (
+        !(
+            authorization.length == 2 &&
+            authorization[0].toLowerCase() === 'bearer'
+        )
+    )
+        throw new MalformedAuthorizationHeaderError()
+
+    const token = authorization[1]
+    if (!token) throw new EmptyTokenError()
+
+    return token
+}
+
+const extractTokenFromBody = (
+    body: Record<string, unknown> & { token: unknown }
+): string => {
+    const token = body.token
+
+    if (typeof token !== 'string') throw new TokenTypeError()
+
+    if (!token) throw new EmptyTokenError()
+
+    return token
+}
+
+export class MissingTokenError extends Error {
+    constructor() {
+        super("Token not found in 'Authorization' header or request.body")
+        this.name = 'MissingTokenError'
+    }
+}
+
+export class MalformedAuthorizationHeaderError extends Error {
+    constructor() {
+        super("Malformed 'Authorization' header")
+        this.name = 'MalformedAuthorizationHeader'
+    }
+}
+
+export class EmptyTokenError extends Error {
+    constructor() {
+        super('Token must not be an empty string')
+        this.name = 'EmptyTokenError'
+    }
+}
+
+export class TokenTypeError extends Error {
+    constructor() {
+        super('Token is not a string')
+        this.name = 'TokenTypeError'
+    }
+}
