@@ -16,7 +16,13 @@ export interface IdToken {
 }
 
 export interface AzureB2CTokenPayload extends ITokenPayload {
-    emails?: string[]
+    email?: string
+    phone?: string
+    user_name?: string
+    log_in_name: string
+    has_email: boolean
+    has_phone: boolean
+    has_user_name: boolean
     // Provided in actual JWTs but not present in ITokenPayload type
     tfp: string
     nonce: string

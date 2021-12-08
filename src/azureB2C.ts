@@ -101,12 +101,15 @@ export const transferAzureB2CToken = async (req: Request): Promise<IdToken> => {
                 if (info instanceof Error) {
                     return reject(info)
                 }
-                if (!info.emails || info.emails.length === 0) {
-                    return reject({ message: 'missing emails claim' })
-                }
                 const idToken = {
                     name: info.name,
-                    email: info.emails[0],
+                    email: info.email,
+                    phone: info.phone,
+                    user_name: info.user_name,
+                    log_in_name: info.log_in_name,
+                    has_email: info.has_email,
+                    has_phone: info.has_phone,
+                    has_user_name: info.has_user_name,
                 }
                 return resolve(idToken)
             }
