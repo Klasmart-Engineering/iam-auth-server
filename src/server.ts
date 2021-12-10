@@ -215,7 +215,7 @@ export class AuthServer {
     ) {
         res.cookie('access', accessToken, {
             domain: config.server.domain,
-            httpOnly: true,
+            httpOnly: false,
             maxAge: config.cookies.access.duration * 1000,
             secure: config.cookies.httpsOnly,
         })
