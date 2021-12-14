@@ -60,11 +60,16 @@ export class AuthServer {
         const app = express()
         app.use(cookieParser())
         app.use(jsonParser)
-        app.get('/.well-known/express/server-health', (req, res) => {
+        app.use(cors<Request>(corsConfiguration)) 
+        app.get('/auth-server/', (req, res) => {
+            res.send('hello world')
+            res.end()
+        })
+        app.get('/auth-server/.well-known/express/server-health', (req, res) => {
             res.status(200)
             res.end()
         })
-        app.post(`${routePrefix}/transfer`, (req, res) =>
+        app.post(`${routePrefix}/transfer`, (req, res) => 
             server.transfer(req, res)
         )
         app.all(`${routePrefix}/switch`, cors<Request>(corsConfiguration), (req, res) =>
