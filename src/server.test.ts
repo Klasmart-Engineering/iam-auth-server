@@ -41,6 +41,8 @@ describe('/transfer', () => {
             email,
             iss: testInternalIssuer.iss,
         })
+        const accessIsHttpOnly = cookies[0].includes('HttpOnly')
+        expect(accessIsHttpOnly).toBe(false)
 
         const refresh = cookie.parse(cookies[1])
         expect(refresh).toMatchObject({
@@ -60,6 +62,8 @@ describe('/transfer', () => {
         expect(refreshPayload.token).toMatchObject({
             email,
         })
+        const refreshIsHttpOnly = cookies[1].includes('HttpOnly')
+        expect(refreshIsHttpOnly).toBe(true)
     }
 
     let app: Express

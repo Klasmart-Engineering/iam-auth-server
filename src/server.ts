@@ -217,7 +217,7 @@ export class AuthServer {
             domain: config.server.domain,
             httpOnly: false,
             maxAge: config.cookies.access.duration * 1000,
-            secure: config.cookies.httpsOnly,
+            secure: false,
         })
         res.cookie('refresh', refreshToken, {
             path: '/refresh',
