@@ -1,3 +1,5 @@
+//the implementation is copy-pasted
+// from https://bitbucket.org/calmisland/kidsloop-user-service/src/9928d26d4b0abc934224c8aafb07a885c22bebdc/src/utils/phoneNumberCleaning.ts?at=master
 // this is a re-implementation of
 // https://bitbucket.org/calmisland/go-server-utils/src/master/phoneutils/phone_numbers.go#lines-26
 // it's very important it stays in sync with that code to avoid bugs like AD-1133
