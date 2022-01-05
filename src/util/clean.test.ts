@@ -7,7 +7,7 @@ describe('phone', () => {
 
     it('if invalid is unchanged', () => {
         const input = 'not-a-phone-number'
-        expect(cleanPhone(input)).toBe(undefined)
+        expect(cleanPhone(input)).toBe(input)
     })
 
     it('preserves null', () => {
@@ -64,7 +64,7 @@ describe('phone', () => {
             '14155552671a',
             '4420718387503890',
             's5511552563257264',
-            '.1XXX5550100',
+            '.1xxx5550100',
             '(1)4155552671',
             'a(1)415a5552671',
             '[(1)4155552671a',
@@ -73,12 +73,12 @@ describe('phone', () => {
             'c(44)207-18387-503890',
             'f(55)11552563257264',
             '(55)1155 25632-57264',
-            '(1)XXX5550100',
+            '(1)xxx5550100',
         ]
 
         for (const num of invalidPhoneNumbers) {
             it(`cannot clean ${num} into a valid E164 number`, () => {
-                expect(cleanPhone(num)).toBe(undefined)
+                expect(cleanPhone(num)).toBe(num)
             })
         }
 

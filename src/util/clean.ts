@@ -13,8 +13,7 @@ or know that `value` is already valid
 call with `throwErrors=false`
 */
 const cleanPhone = (
-    phoneNumber: string | undefined | null,
-    throwErrors = false
+    phoneNumber: string | undefined | null
 ): string | null | undefined => {
     phoneNumber = contactInfo(phoneNumber)
 
@@ -25,11 +24,8 @@ const cleanPhone = (
     try {
         return normalizePhoneNumber(phoneNumber)
     } catch (e: any) {
-        if (throwErrors) {
-            console.log(e.code)
-        } else {
-            return undefined
-        }
+        console.error('error normalizing phone number ', e)
+        return phoneNumber
     }
 }
 
