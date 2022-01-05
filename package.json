@@ -35,7 +35,6 @@
     "@types/express": "4.17.12",
     "@types/jest": "27.0.3",
     "@types/jsonwebtoken": "8.5.1",
-    "@types/mocha": "9.0.0",
     "@types/node": "14.17.3",
     "@types/passport": "1.0.7",
     "@types/passport-azure-ad": "4.3.1",
