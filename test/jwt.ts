@@ -108,7 +108,7 @@ export const validAzureB2CJWTPayload: AzureB2CTokenPayload = {
     aud: process.env.AZURE_B2C_CLIENT_ID,
     oid: '4aeaf96e-77af-4b11-b968-2baf1b31282c',
     sub: '4aeaf96e-77af-4b11-b968-2baf1b31282c',
-    emails: [testUser.email],
+    email: testUser.email,
     tfp: 'B2C_1_KL_create_user_or_sign_in',
     nonce: '9acaca09-27db-46fb-a838-05d8171a0117',
     scp: 'tasks.write',
@@ -116,6 +116,11 @@ export const validAzureB2CJWTPayload: AzureB2CTokenPayload = {
     azp: '0344eff3-68e0-45b0-99bb-bdbca3cce2f6',
     ver: '1.0' as ITokenPayload['ver'],
     iat: 1638291645,
+    //
+    log_in_name: 'string',
+    has_email: true,
+    has_phone: false,
+    has_user_name: false,
 }
 
 export const createAzureB2CJWT = async (
