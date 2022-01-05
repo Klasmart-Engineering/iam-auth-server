@@ -62,4 +62,32 @@ describe('normalizePhoneNumber', () => {
             expect(normalizePhoneNumber(phoneNumber)).toEqual('+40722333777')
         })
     })
+
+    describe('when the phone number has spaces inside', () => {
+        const phoneNumber = '+1 723 723 7233'
+        it('should remove the spaces inside from the phone number', () => {
+            expect(normalizePhoneNumber(phoneNumber)).toEqual('+17237237233')
+        })
+    })
+
+    describe('when the phone number has special characters inside', () => {
+        const phoneNumber = '+1-723-732(7233)'
+        it('should remove the special characters inside', () => {
+            expect(normalizePhoneNumber(phoneNumber)).toEqual('+17237327233')
+        })
+    })
+
+    describe('when the phone number has special characters and spaces inside', () => {
+        const phoneNumber = '+1-723-732 (72 33)'
+        it('should remove the special characters and spaces inside', () => {
+            expect(normalizePhoneNumber(phoneNumber)).toEqual('+17237327233')
+        })
+    })
+
+    describe('when the phone number has special characters. letters and spaces inside', () => {
+        const phoneNumber = '+1-723-732z (72 33)'
+        it('should remove the special characters and spaces inside', () => {
+            expect(normalizePhoneNumber(phoneNumber)).toEqual('+1723732z7233')
+        })
+    })
 })
