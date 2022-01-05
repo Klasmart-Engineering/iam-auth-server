@@ -13,20 +13,20 @@ or know that `value` is already valid
 call with `throwErrors=false`
 */
 const cleanPhone = (
-    value: string | undefined | null,
+    phoneNumber: string | undefined | null,
     throwErrors = false
 ): string | null | undefined => {
-    value = contactInfo(value)
+    phoneNumber = contactInfo(phoneNumber)
 
-    if (value === undefined || value === null) {
-        return value
+    if (!phoneNumber) {
+        return phoneNumber
     }
 
     try {
-        return normalizePhoneNumber(value)
-    } catch (e) {
+        return normalizePhoneNumber(phoneNumber)
+    } catch (e: any) {
         if (throwErrors) {
-            throw e
+            console.log(e.code)
         } else {
             return undefined
         }

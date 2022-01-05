@@ -1,12 +1,10 @@
-import { expect } from 'chai'
-
 import normalizePhoneNumber from './cleanPhoneNumber'
 
 describe('normalizePhoneNumber', () => {
     describe('when the phone number is empty', () => {
         const phoneNumber = ''
         it('should throw an Error', () => {
-            expect(() => normalizePhoneNumber(phoneNumber)).to.throw(Error)
+            expect(() => normalizePhoneNumber(phoneNumber)).toThrow(Error)
         })
     })
 
@@ -17,7 +15,7 @@ describe('normalizePhoneNumber', () => {
             const cleanPhoneNumber = normalizePhoneNumber(
                 `${prefix}${phoneNumber}`
             )
-            expect(cleanPhoneNumber).to.equal(`+${phoneNumber}`)
+            expect(cleanPhoneNumber).toEqual(`+${phoneNumber}`)
         })
     })
 
@@ -28,7 +26,7 @@ describe('normalizePhoneNumber', () => {
             const cleanPhoneNumber = normalizePhoneNumber(
                 `${prefix}${phoneNumber}`
             )
-            expect(cleanPhoneNumber).to.equal(`+${phoneNumber}`)
+            expect(cleanPhoneNumber).toEqual(`+${phoneNumber}`)
         })
     })
 
@@ -38,28 +36,30 @@ describe('normalizePhoneNumber', () => {
         it('should throw error', () => {
             expect(() =>
                 normalizePhoneNumber(`${prefix}${phoneNumber}`)
-            ).to.throw(Error)
+            ).toThrow(Error)
         })
     })
 
     describe('when the phone number equals 00', () => {
         const phoneNumber = '00'
         it('should throw error', () => {
-            expect(() => normalizePhoneNumber(phoneNumber)).to.throw(Error)
+            expect(() => normalizePhoneNumber(phoneNumber)).toThrow(Error)
         })
     })
 
     describe('when the phone number equals country code prefix is invalid', () => {
         const phoneNumber = '+0733228558'
         it('should throw error - Unable to get the country code from the phone number', () => {
-            expect(() => normalizePhoneNumber(phoneNumber)).to.throw(Error)
+            expect(() => normalizePhoneNumber(phoneNumber)).toThrow(
+                Error('Unable to get the country code from the phone number')
+            )
         })
     })
 
     describe('when the country code is valid and the rest of the local phone number has leading zeros', () => {
         const phoneNumber = '+4000722333777'
         it('should keep the country code and remove the leading zeros', () => {
-            expect(normalizePhoneNumber(phoneNumber)).to.equal('+40722333777')
+            expect(normalizePhoneNumber(phoneNumber)).toEqual('+40722333777')
         })
     })
 })

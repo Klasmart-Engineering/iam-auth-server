@@ -1,23 +1,21 @@
-import { expect } from 'chai'
-
 import cleanPhone from './clean'
 
 describe('phone', () => {
     it('normalises "" to null', () => {
-        expect(cleanPhone('')).to.be.null
+        expect(cleanPhone('')).toBe(null)
     })
 
     it('if invalid is unchanged', () => {
         const input = 'not-a-phone-number'
-        expect(cleanPhone(input)).to.be.undefined
+        expect(cleanPhone(input)).toBe(undefined)
     })
 
     it('preserves null', () => {
-        expect(cleanPhone(null)).to.be.null
+        expect(cleanPhone(null)).toBe(null)
     })
 
     it('removes spaces', () => {
-        expect(cleanPhone(' +4412345678910 ')).to.equal('+4412345678910')
+        expect(cleanPhone(' +4412345678910 ')).toEqual('+4412345678910')
     })
 
     // tests copied from https://bitbucket.org/calmisland/go-server-utils/src/master/phoneutils/phone_numbers_test.go
@@ -55,8 +53,8 @@ describe('phone', () => {
         for (const [num, cleaned] of validUncleanPhoneNumbers.entries()) {
             it(`cleans ${num} into a valid E164 number`, () => {
                 const cleanNum = cleanPhone(num)
-                expect(cleanNum).to.eq(cleaned)
-                expect(isValidPhoneNumber(cleanNum as string)).to.be.true
+                expect(cleanNum).toEqual(cleaned)
+                expect(isValidPhoneNumber(cleanNum as string)).toBe(true)
             })
         }
 
@@ -80,7 +78,7 @@ describe('phone', () => {
 
         for (const num of invalidPhoneNumbers) {
             it(`cannot clean ${num} into a valid E164 number`, () => {
-                expect(cleanPhone(num)).to.be.undefined
+                expect(cleanPhone(num)).toBe(undefined)
             })
         }
 
@@ -161,9 +159,9 @@ describe('phone', () => {
             it(`parsed ${num} correctly`, () => {
                 const cleanNum = cleanPhone(num)
                 if (cleanNum == null) {
-                    expect(false, 'should not be null')
+                    expect(false)
                 } else {
-                    expect(cleanNum).to.equal(
+                    expect(cleanNum).toEqual(
                         `+${parsed.CountryCallCode}${parsed.LocalPhoneNumber}`
                     )
                 }
@@ -248,7 +246,7 @@ describe('phone', () => {
                 const cleanNum = cleanPhone(
                     `+${parsed.CountryCallCode}${parsed.LocalPhoneNumber}`
                 )
-                expect(cleanNum).to.equal(num)
+                expect(cleanNum).toEqual(num)
             })
         }
     })
