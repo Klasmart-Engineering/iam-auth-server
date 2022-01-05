@@ -7,6 +7,7 @@ import {
 } from 'passport-azure-ad'
 
 import { AzureB2CTokenPayload, IdToken } from './types/token'
+import normalizePhoneNumber from './util/cleanPhoneNumber'
 
 const credentials = {
     tenantID: process.env.AZURE_B2C_TENANT_ID,
@@ -104,7 +105,9 @@ export const transferAzureB2CToken = async (req: Request): Promise<IdToken> => {
                 const idToken = {
                     name: info.name,
                     email: info.email,
-                    phone: info.phone,
+                    phone: info.phone
+                        ? normalizePhoneNumber(info.phone)
+                        : info.phone,
                     user_name: info.user_name,
                     log_in_name: info.log_in_name,
                     has_email: info.has_email,
