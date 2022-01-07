@@ -20,7 +20,7 @@ describe('phone', () => {
 
     // tests copied from https://bitbucket.org/calmisland/go-server-utils/src/master/phoneutils/phone_numbers_test.go
 
-    describe('has same behaviour as auth service', () => {
+    describe('when phone number has spaces or lines with plus sign', () => {
         const validUncleanPhoneNumbers = new Map([
             ['+(1)415 555 2671', '+14155552671'],
             ['+(44)207-183-8750', '+442071838750'],
@@ -57,7 +57,9 @@ describe('phone', () => {
                 expect(isValidPhoneNumber(cleanNum as string)).toBe(true)
             })
         }
+    })
 
+    describe('when phone number has spaces or lines or letters', () => {
         const invalidPhoneNumbers: string[] = [
             '14155552671',
             '1415a5552671',
@@ -81,7 +83,9 @@ describe('phone', () => {
                 expect(cleanPhone(num)).toBe(num)
             })
         }
+    })
 
+    describe('when phone number has valid country call code', () => {
         const parsedNumbers = new Map([
             [
                 '+14155552671',
@@ -165,88 +169,6 @@ describe('phone', () => {
                         `+${parsed.CountryCallCode}${parsed.LocalPhoneNumber}`
                     )
                 }
-            })
-        }
-
-        const testParsedNumbers = new Map([
-            [
-                '+14155552671',
-                {
-                    CountryCallCode: 1,
-                    LocalPhoneNumber: 4155552671,
-                },
-            ],
-            [
-                '+442071838750',
-                {
-                    CountryCallCode: 44,
-                    LocalPhoneNumber: 2071838750,
-                },
-            ],
-            [
-                '+4420718387503',
-                {
-                    CountryCallCode: 44,
-                    LocalPhoneNumber: 20718387503,
-                },
-            ],
-            [
-                '+44207183875038',
-                {
-                    CountryCallCode: 44,
-                    LocalPhoneNumber: 207183875038,
-                },
-            ],
-            [
-                '+442071838750380',
-                {
-                    CountryCallCode: 44,
-                    LocalPhoneNumber: 2071838750380,
-                },
-            ],
-            [
-                '+551155256325',
-                {
-                    CountryCallCode: 55,
-                    LocalPhoneNumber: 1155256325,
-                },
-            ],
-            [
-                '+5511552563257',
-                {
-                    CountryCallCode: 55,
-                    LocalPhoneNumber: 11552563257,
-                },
-            ],
-            [
-                '+55115525632572',
-                {
-                    CountryCallCode: 55,
-                    LocalPhoneNumber: 115525632572,
-                },
-            ],
-            [
-                '+551155256325726',
-                {
-                    CountryCallCode: 55,
-                    LocalPhoneNumber: 1155256325726,
-                },
-            ],
-            [
-                '+11235550100',
-                {
-                    CountryCallCode: 1,
-                    LocalPhoneNumber: 1235550100,
-                },
-            ],
-        ])
-
-        for (const [num, parsed] of testParsedNumbers) {
-            it(`testParsedNumbers:  ${num} correctly`, () => {
-                const cleanNum = cleanPhone(
-                    `+${parsed.CountryCallCode}${parsed.LocalPhoneNumber}`
-                )
-                expect(cleanNum).toEqual(num)
             })
         }
     })
