@@ -37,6 +37,12 @@ spec:
             value: "8083"
           - name: ROUTE_PREFIX
             value: /auth-server
+          - name: AMS_PUBLIC_KEY
+            value: |
+              -----BEGIN PUBLIC KEY-----
+              the public key that you generated for auth-lambda-funcs.
+              Look in the README to check out how this variable should be formatted.
+              -----END PUBLIC KEY-----
         image: auth-server-tilt
         resources: {}
         ports:
