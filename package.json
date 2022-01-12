@@ -10,7 +10,10 @@
     "format": "prettier . --write",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
-    "check": "tsc --noEmit",
+    "check:types": "tsc --noEmit",
+    "check:eslint": "eslint . --ext .ts",
+    "check:prettier": "prettier . --check",
+    "check": "npm run check:types && npm run check:eslint && npm run check:prettier",
     "test": "jest"
   },
   "config": {

@@ -8,10 +8,7 @@ import { decode } from 'jsonwebtoken'
 
 import config from './config'
 import { connectToDB, switchProfile } from './db'
-import {
-    decodeAndStandardizeThirdPartyJWT,
-    JwtService,
-} from './jwt'
+import { decodeAndStandardizeThirdPartyJWT, JwtService } from './jwt'
 import { createJwtConfig } from './jwtConfig'
 import { RefreshTokenManager } from './refreshToken'
 import { validateString } from './util/validate'

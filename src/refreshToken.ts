@@ -22,9 +22,7 @@ export class RefreshTokenManager {
         return encodedToken
     }
 
-    public async refreshSession(
-        previousEncodedRefreshToken: string
-    ) {
+    public async refreshSession(previousEncodedRefreshToken: string) {
         const previousRefreshToken = (await this.jwtService.verifyRefreshToken(
             previousEncodedRefreshToken
         )) as RefreshToken

@@ -1,17 +1,17 @@
 import cleanPhone from './clean'
 
-describe('phone', () => {
-    it('normalises "" to null', () => {
-        expect(cleanPhone('')).toBe(null)
+describe('cleanPhone', () => {
+    it('if the phoneNumber is undefined, returns undefined', () => {
+        expect(cleanPhone(undefined)).toBe(undefined)
     })
 
-    it('if invalid is unchanged', () => {
+    it('if the phoneNumber is an empty string, returns the empty string', () => {
+        expect(cleanPhone('')).toBe('')
+    })
+
+    it('if the phoneNumber is invalid, returns identity', () => {
         const input = 'not-a-phone-number'
         expect(cleanPhone(input)).toBe(input)
-    })
-
-    it('preserves null', () => {
-        expect(cleanPhone(null)).toBe(null)
     })
 
     it('removes spaces', () => {

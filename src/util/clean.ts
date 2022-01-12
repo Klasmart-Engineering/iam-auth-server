@@ -1,21 +1,7 @@
 import normalizePhoneNumber from './cleanPhoneNumber'
 
-/*
-this function both cleans and validates
-and will throw errors for invalid numbers
-
-If you're already doing validation seperatly
-and don't want to throw more errors
-or you want invalid values to default to undefined
-call with `throwErrors=true`
-If your using this function to validate `value`
-or know that `value` is already valid
-call with `throwErrors=false`
-*/
-const cleanPhone = (
-    phoneNumber: string | undefined | null
-): string | null | undefined => {
-    phoneNumber = contactInfo(phoneNumber)
+const cleanPhone = (value: string | undefined): string | undefined => {
+    const phoneNumber = value?.trim()
 
     if (!phoneNumber) {
         return phoneNumber
@@ -27,15 +13,6 @@ const cleanPhone = (
         console.error('error normalizing phone number ', e)
         return phoneNumber
     }
-}
-
-const normalizedLowercaseTrimmed = (x?: string) =>
-    x?.normalize('NFKC').toLowerCase().trim()
-
-const contactInfo = (value: string | null | undefined) => {
-    if (value === null || value === '') return null
-    if (typeof value === 'undefined') return undefined
-    return normalizedLowercaseTrimmed(value)
 }
 
 export default cleanPhone
