@@ -11,7 +11,9 @@
     "prepare": "husky install",
     "pre-commit": "lint-staged",
     "check": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "prebuild": "rm -rf dist",
+    "build": "tsc -p tsconfig.build.json"
   },
   "config": {
     "commitizen": {
