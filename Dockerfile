@@ -6,4 +6,4 @@ RUN npm audit fix
 COPY ./src ./src
 COPY ./tsconfig.json .
 EXPOSE 8080
-CMD [ "npm", "start" ]
+CMD [ "ts-node", "src/entry.ts" ]
