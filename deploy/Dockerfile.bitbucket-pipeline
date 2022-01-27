@@ -4,14 +4,12 @@ COPY ./package*.json ./
 
 FROM base AS build
 RUN npm ci
-RUN npm audit fix
 COPY tsconfig*.json ./
 COPY src src
 RUN npm run build
 
 FROM base AS deps
 RUN npm ci --only=production
-RUN npm audit fix --only=production
 
 FROM base as release
 COPY --from=deps /usr/src/app/node_modules node_modules
