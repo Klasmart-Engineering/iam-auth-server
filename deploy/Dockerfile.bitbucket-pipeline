@@ -9,7 +9,7 @@ COPY src src
 RUN npm run build
 
 FROM base AS deps
-RUN npm ci --only=production
+RUN npm ci --only=production --ignore-scripts
 
 FROM base as release
 COPY --from=deps /usr/src/app/node_modules node_modules
