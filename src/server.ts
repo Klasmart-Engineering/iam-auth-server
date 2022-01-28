@@ -23,6 +23,13 @@ const domainRegex = new RegExp(
     )}(:[0-9]{1,5})?$`
 )
 
+const corsOptions: CorsOptions = {
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    credentials: true,
+    maxAge: 60 * 60 * 24, // 1 day
+    origin: domainRegex,
+}
+
 export class AuthServer {
     public static async create(): Promise<express.Express> {
         const jwtConfig = await createJwtConfig()
@@ -31,25 +38,6 @@ export class AuthServer {
         const server = new AuthServer(tokenManager, jwtService)
 
         const jsonParser = bodyParser.json()
-
-        const corsConfiguration: CorsOptions = {
-            allowedHeaders: ['Authorization', 'Content-Type'],
-            credentials: true,
-            origin: (origin, callback) => {
-                try {
-                    if (!origin) {
-                        console.log(origin, false)
-                        callback(null, false)
-                        return
-                    }
-                    const match = origin.match(domainRegex)
-                    callback(null, Boolean(match))
-                } catch (e) {
-                    console.log(e)
-                    callback(e)
-                }
-            },
-        }
 
         const app = express()
         app.use(cookieParser())
@@ -63,17 +51,17 @@ export class AuthServer {
         )
         app.all(
             `${config.server.routePrefix}/switch`,
-            cors<Request>(corsConfiguration),
+            cors<Request>(corsOptions),
             (req, res) => server.switchProfile(req, res)
         )
         app.all(
             `${config.server.routePrefix}/refresh`,
-            cors<Request>(corsConfiguration),
+            cors<Request>(corsOptions),
             (req, res) => server.refresh(req, res)
         )
         app.all(
             `${config.server.routePrefix}/signout`,
-            cors<Request>(corsConfiguration),
+            cors<Request>(corsOptions),
             (req, res) => server.signOut(req, res)
         )
         return app
