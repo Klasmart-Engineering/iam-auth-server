@@ -4,7 +4,7 @@ const baseDBConfig: ConnectionOptions = {
     name: 'default',
     type: 'postgres',
     synchronize: false,
-    entities: ['src/entities/*.ts'],
+    entities: ['src/entities/*{.ts,.js}'],
 }
 
 export const defaultDBConfig: ConnectionOptions = {

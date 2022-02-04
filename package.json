@@ -14,7 +14,9 @@
     "check:eslint": "eslint . --ext .ts",
     "check:prettier": "prettier . --check",
     "check": "npm run check:types && npm run check:eslint && npm run check:prettier",
-    "test": "jest"
+    "test": "jest",
+    "prebuild": "rm -rf dist",
+    "build": "tsc -p tsconfig.build.json"
   },
   "config": {
     "commitizen": {

@@ -14,3 +14,30 @@ docker run -d --name=$CONTAINER -p 5432:5432 -e POSTGRES_PASSWORD=kidsloop postg
 docker container exec -it $CONTAINER psql -U postgres -c "CREATE DATABASE auth_server_test;"
 docker container exec -it $CONTAINER psql -U postgres -c "CREATE DATABASE auth_server_dev;"
 ```
+
+### Docker
+
+You can build the production Docker image by running the following commands
+
+```sh
+docker build --tag auth-server:latest .
+docker run --env-file .env auth-server:latest
+```
+
+This image supports either the `AWS_SECRET_NAME` or a combination of `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` environment variables (in addition to the other required `JWT_` variables such as `JWT_ALGORITHM`)
+
+If you want to use local files for your private/public key pair, first rename the keys to `private_key` and `public_key`, and store them in the root of the project.
+
+Then ensure the following is set in your `.env` file
+
+```txt
+JWT_PUBLIC_KEY_FILENAME=./public_key
+JWT_PRIVATE_KEY_FILENAME=./private_key
+```
+
+then run
+
+```sh
+docker build --tag auth-server:latest -f Dockerfile-With-Credentials .
+docker run --env-file .env auth-server:latest
+```

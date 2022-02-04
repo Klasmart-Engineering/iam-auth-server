@@ -1,9 +1,19 @@
-FROM node:lts-alpine
+FROM node:lts-alpine AS base
 WORKDIR /usr/src/app
 COPY ./package*.json ./
+
+FROM base AS build
 RUN npm ci
-RUN npm audit fix
-COPY ./src ./src
-COPY ./tsconfig.json .
+COPY tsconfig*.json ./
+COPY src src
+RUN npm run build
+
+FROM base AS deps
+RUN npm ci --only=production --ignore-scripts
+
+FROM base as release
+COPY --from=deps /usr/src/app/node_modules node_modules
+COPY --from=build /usr/src/app/dist/ .
+ENV PORT=8080
 EXPOSE 8080
-CMD [ "npm", "start" ]
+CMD [ "node", "src/entry.js" ]
