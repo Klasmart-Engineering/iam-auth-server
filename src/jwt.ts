@@ -10,9 +10,17 @@ import {
     VerifyOptions,
 } from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
+import { isEmpty, pickBy } from 'lodash'
 
 import transferAzureB2CToken, { isAzureB2CToken } from './azureB2C'
 import config from './config'
+import {
+    EmptyTokenError,
+    MalformedAuthorizationHeaderError,
+    MissingAccountIdentifierError,
+    MissingTokenError,
+    TokenTypeError,
+} from './errors'
 import { JwtConfig } from './jwtConfig'
 import { RefreshToken } from './refreshToken'
 import { DecodedToken, IdToken } from './types/token'
@@ -99,6 +107,7 @@ export class JwtService {
                 if (encoded) {
                     resolve(encoded)
                 } else {
+                    console.log(err)
                     reject(err)
                 }
             })
@@ -495,30 +504,16 @@ const extractTokenFromBody = (
     return token
 }
 
-export class MissingTokenError extends Error {
-    constructor() {
-        super("Token not found in 'Authorization' header or request.body")
-        this.name = 'MissingTokenError'
-    }
-}
+export const extractAccountIdentifiers = (token: IdToken) => {
+    const identifiers = pickBy({
+        email: token.email,
+        phone: token.phone,
+        username: token.user_name,
+    })
 
-export class MalformedAuthorizationHeaderError extends Error {
-    constructor() {
-        super("Malformed 'Authorization' header")
-        this.name = 'MalformedAuthorizationHeader'
+    if (!isEmpty(identifiers)) {
+        return identifiers
     }
-}
 
-export class EmptyTokenError extends Error {
-    constructor() {
-        super('Token must not be an empty string')
-        this.name = 'EmptyTokenError'
-    }
-}
-
-export class TokenTypeError extends Error {
-    constructor() {
-        super('Token is not a string')
-        this.name = 'TokenTypeError'
-    }
+    throw new MissingAccountIdentifierError()
 }

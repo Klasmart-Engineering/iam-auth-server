@@ -6,6 +6,7 @@ export interface IdToken {
     id?: string
     email?: string
     phone?: string
+    user_name?: string
 
     // Not used?
     name?: string

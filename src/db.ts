@@ -2,6 +2,7 @@ import { createConnection } from 'typeorm'
 
 import config from './config'
 import { User } from './entities/user'
+import { extractAccountIdentifiers } from './jwt'
 import { IdToken } from './types/token'
 
 export async function connectToDB() {
@@ -16,25 +17,19 @@ export async function connectToDB() {
 }
 
 export async function switchProfile(
-    previousAccessToken: IdToken,
+    tokenPayload: IdToken,
     user_id: string
 ): Promise<IdToken> {
-    const email = previousAccessToken.email
-    const phone = previousAccessToken.phone
-    if (!email && !phone) {
-        throw new Error('Access token does not contain valid email or phone')
-    }
+    const accountIdentifiers = extractAccountIdentifiers(tokenPayload)
 
     await User.findOneOrFail({
-        where: [
-            { user_id, email },
-            { user_id, phone },
-        ],
+        where: Object.entries(accountIdentifiers).map(([field, value]) => {
+            return { user_id, [field]: value }
+        }),
     })
 
     return {
         id: user_id,
-        email,
-        phone,
+        ...accountIdentifiers,
     }
 }

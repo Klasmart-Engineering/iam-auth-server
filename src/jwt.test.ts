@@ -1,13 +1,15 @@
 import { createRequest } from 'node-mocks-http'
 
 import { exampleJWTs } from '../test/jwt'
+import { testUser } from '../test/user'
 import {
     EmptyTokenError,
-    extractTokenFromRequest,
     MalformedAuthorizationHeaderError,
+    MissingAccountIdentifierError,
     MissingTokenError,
     TokenTypeError,
-} from './jwt'
+} from './errors'
+import { extractAccountIdentifiers, extractTokenFromRequest } from './jwt'
 
 describe('extractTokenFromRequest', () => {
     const [jwt, otherJwt] = exampleJWTs
@@ -106,6 +108,69 @@ describe('extractTokenFromRequest', () => {
                     TokenTypeError
                 )
             })
+        })
+    })
+})
+
+describe('extractAccountIdentifiers', () => {
+    describe('when the token has no email, phone or user_name', () => {
+        it('should throw a MissingAccountIdentifierError', () => {
+            expect(() =>
+                extractAccountIdentifiers({
+                    email: '',
+                    phone: undefined,
+                    user_name: undefined,
+                })
+            ).toThrow(MissingAccountIdentifierError)
+        })
+    })
+
+    describe('when the token has an email', () => {
+        it('should return an object with the email', () => {
+            const email = testUser.email
+            expect(
+                extractAccountIdentifiers({
+                    email,
+                    phone: undefined,
+                    user_name: '',
+                })
+            ).toEqual({ email })
+        })
+    })
+
+    describe('when the token has an phone', () => {
+        it('should return an object with the phone', () => {
+            const phone = testUser.phone
+            expect(
+                extractAccountIdentifiers({
+                    phone,
+                    email: undefined,
+                    user_name: '',
+                })
+            ).toEqual({ phone })
+        })
+    })
+
+    describe('when the token has a user_name', () => {
+        it('should return an object with the username', () => {
+            const username = testUser.username
+            expect(
+                extractAccountIdentifiers({
+                    user_name: username,
+                    phone: undefined,
+                    email: '',
+                })
+            ).toEqual({ username })
+        })
+    })
+
+    describe('when the token has multiple identifiers', () => {
+        it('should return an object with all identifiers', () => {
+            const { email, phone } = testUser
+
+            expect(
+                extractAccountIdentifiers({ user_name: '', email, phone })
+            ).toEqual({ email, phone })
         })
     })
 })

@@ -12,4 +12,7 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true })
     public phone?: string
+
+    @Column({ nullable: true })
+    public username?: string
 }

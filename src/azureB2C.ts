@@ -6,6 +6,7 @@ import {
     ITokenPayload,
 } from 'passport-azure-ad'
 
+import { MissingAccountIdentifierError } from './errors'
 import { AzureB2CTokenPayload, IdToken } from './types/token'
 import cleanPhone from './util/clean'
 
@@ -102,6 +103,11 @@ export const transferAzureB2CToken = async (req: Request): Promise<IdToken> => {
                 if (info instanceof Error) {
                     return reject(info)
                 }
+
+                if (!(info.email || info.phone || info.user_name)) {
+                    return reject(new MissingAccountIdentifierError())
+                }
+
                 const idToken = {
                     name: info.name,
                     email: info.email,
