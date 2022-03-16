@@ -1,6 +1,11 @@
 name: CI Pipeline for PRs
 
-# on:
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
 #   push:
 #     branches-ignore:
 #       - "**"

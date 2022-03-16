@@ -44,7 +44,7 @@ jobs:
         run: npm run coverage:migrations
       - name: "Integration tests"
         run: npm run coverage:integration
-      - name: "Acceptance tests"
+      # - name: "Acceptance tests"
       #   run: |
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       
