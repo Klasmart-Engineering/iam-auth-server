@@ -32,50 +32,20 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_PAT }}
       - name: "NPM check"
-        # if: github.ref == 'refs/heads/main'
         run: |
           npm run check
-        continue-on-error: true
       - name: "NPM prettier"
-        # if: github.ref == 'refs/heads/main'
         run: |
           npm run prettier-check
         continue-on-error: true
       - name: "NPM lint"
-        # if: github.ref == 'refs/heads/main'
         run: |
           npm run lint
         continue-on-error: true
       - name: "NPM Commit Lint"
-        # if: github.ref == 'refs/heads/main'
         run: |
           npm run commitlint-check -- --from=HEAD
         continue-on-error: true
-      - name: "Unit tests"
-        run: npm run coverage:unit
-      - name: "Migration tests"
-        run: npm run coverage:migrations
-      - name: "Integration tests"
-        run: npm run coverage:integration
-      # - name: "Acceptance tests"
-      #   run: |
-      #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      
-      #     ids=$(docker ps -a -q)
-      #     for id in $ids
-      #     do
-      #       echo "$id"
-      #       docker stop $id && docker rm $id
-      #     done
-      
-      #     npm run build
-      #     npx nyc instrument ./dist --in-place
-      #     docker-compose up -d && sleep 20
-      #     docker-compose ps
-      #     npm run test:acceptance
-      
-      #     docker stop -t 2 user-service
-      #     npx nyc report --require ts-node/register --reporter=lcov --reporter=json-summary --reporter=text-summary --report-dir ./coverage_acceptance
 
   build:
     runs-on: ubuntu-latest
