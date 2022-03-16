@@ -34,6 +34,7 @@ jobs:
       - name: "NPM check"
         run: |
           npm run check
+        continue-on-error: true
       - name: "NPM prettier"
         run: |
           npm run prettier-check
