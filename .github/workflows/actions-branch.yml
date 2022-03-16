@@ -31,13 +31,26 @@ jobs:
         run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_PAT }}
-      - name: "Static checks"
+      - name: "NPM check"
         # if: github.ref == 'refs/heads/main'
         run: |
           npm run check
+        continue-on-error: true
+      - name: "NPM prettier"
+        # if: github.ref == 'refs/heads/main'
+        run: |
           npm run prettier-check
+        continue-on-error: true
+      - name: "NPM lint"
+        # if: github.ref == 'refs/heads/main'
+        run: |
           npm run lint
+        continue-on-error: true
+      - name: "NPM Commit Lint"
+        # if: github.ref == 'refs/heads/main'
+        run: |
           npm run commitlint-check -- --from=HEAD
+        continue-on-error: true
       - name: "Unit tests"
         run: npm run coverage:unit
       - name: "Migration tests"
@@ -150,7 +163,7 @@ jobs:
         run: 'kubectl version --kubeconfig $TOOLS_KUBECONFIG'
 
       - name: Configure ArgoCD CLI
-        uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           version: 2.2.5
           command: version
@@ -170,7 +183,7 @@ jobs:
           echo "DEPLOY_TAG=$DEPLOY_TAG" >> $GITHUB_ENV
 
       - name: Log into ArgoCD
-        uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           version: 2.2.5
           command: login
@@ -181,21 +194,21 @@ jobs:
             ${{ env.ARGOCD_OPTS }}
 
       - name: Show ArgoCD app info
-        uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           version: 2.2.5
           command: app
           options: get ${{ env.ARGOCD_APP }}
 
       - name: Set ArgoCD app tag to build output
-        uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           version: 2.2.5
           command: app
           options: set ${{ env.ARGOCD_APP }} -p ${{ env.ARGOCD_APP_CHART_TAG_PATH }}=${{ env.DEPLOY_TAG }}
 
       - name: Sync the app now
-        uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           version: 2.2.5
           command: app
