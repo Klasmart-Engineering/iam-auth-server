@@ -58,10 +58,6 @@ jobs:
         with:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
-      - name: "Install NPM dependencies"
-        run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_PAT }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -74,12 +70,9 @@ jobs:
         run: |
           echo ${GITHUB_REF_NAME}
           export BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/([^0-9a-zA-Z]+)/-/g' | awk '{print tolower($0)}')
-          
           docker build -t $ECR_REPOSITORY .
-            
           docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG
           docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-${GITHUB_SHA::7}
-            
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-${GITHUB_SHA::7}
         env:
