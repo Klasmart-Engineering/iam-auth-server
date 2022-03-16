@@ -32,19 +32,19 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_PAT }}
       - name: "Static checks"
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: |
           npm run check
           npm run prettier-check
           npm run lint
           npm run commitlint-check -- --from=HEAD
-      # - name: "Unit tests"
-      #   run: npm run coverage:unit
-      # - name: "Migration tests"
-      #   run: npm run coverage:migrations
-      # - name: "Integration tests"
-      #   run: npm run coverage:integration
-      # - name: "Acceptance tests"
+      - name: "Unit tests"
+        run: npm run coverage:unit
+      - name: "Migration tests"
+        run: npm run coverage:migrations
+      - name: "Integration tests"
+        run: npm run coverage:integration
+      - name: "Acceptance tests"
       #   run: |
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       
