@@ -85,28 +85,6 @@ jobs:
           ECR_REGISTRY: ${{ secrets.DOCKER_REPO_URL }}
           ECR_REPOSITORY: "kidsloop-auth-backend"
 
-  # deploy-alpha-dev:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   if: github.ref == 'refs/heads/main'
-  #   steps:
-  #     - name: "Deploy"
-  #       run: |
-  #         export BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/([^0-9a-zA-Z]+)/-/g' | awk '{print tolower($0)}')
-  #         if test -z "$BRANCH_TAG"; then export TAG=commit; else export TAG=$BRANCH_TAG;fi
-
-  #         echo "TAG - ${TAG}"
-  #         echo "COMMIT_TAG - ${GITHUB_SHA::7}"
-  #         echo "IMAGE_TAG - $TAG-${GITHUB_SHA::7}"
-          
-  #         curl --request POST \
-  #         --url https://circleci.com/api/v2/project/bitbucket/calmisland/kidsloop-auth-backend/pipeline \
-  #         --header "Circle-Token: $CIRCLECI_TOKEN" \
-  #         --header "content-type: application/json" \
-  #         --data "{\"branch\":\"master\",\"parameters\":{\"image-tag\":\"$TAG-${GITHUB_SHA::7}\"}}"
-  #       env:
-  #         CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-
   deploy-landing-zone:
     # deploy-landing-zone - this Github Actions job will deploy images created on `main` to the Kidsloop landing zone.
     # Landing zone URL: hub.landing-zone.kidsloop.live
