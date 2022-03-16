@@ -83,8 +83,8 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-${GITHUB_SHA::7}
         env:
-          ECR_REGISTRY: ${{ secrets.DOCKER_REPO_URL }}
-          ECR_REPOSITORY: "kidsloop-auth-backend"
+          ECR_REGISTRY: 942095822719.dkr.ecr.eu-west-2.amazonaws.com
+          ECR_REPOSITORY: kidsloop-auth-backend
 
   deploy-landing-zone:
     # deploy-landing-zone - this Github Actions job will deploy images created on `main` to the Kidsloop landing zone.
