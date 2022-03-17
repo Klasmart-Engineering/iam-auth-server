@@ -27,7 +27,7 @@ jobs:
                 env:
                     POSTGRES_HOST: localhost
                     POSTGRES_PORT: 5432
-                    POSTGRES_DB: testdb
+                    POSTGRES_DB: auth_server_test
                     POSTGRES_USER: postgres
                     POSTGRES_PASSWORD: kidsloop
                 # Set health checks to wait until postgres has started
