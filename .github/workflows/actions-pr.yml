@@ -1,14 +1,8 @@
 name: CI Pipeline for PRs
 
 on:
-    push:
-        branches-ignore:
-            - '**'
     pull_request:
         branches:
-            - '**'
-    pull_request_target:
-        branches-ignore:
             - '**'
 
     # Allows you to run this workflow manually from the Actions tab
@@ -16,7 +10,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-    build:
+    check-pr-title:
         runs-on: ubuntu-latest
         permissions: write-all
 
