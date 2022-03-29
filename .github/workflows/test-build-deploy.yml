@@ -86,8 +86,10 @@ jobs:
                   export BRANCH_TAG=$(echo "${GITHUB_REF_NAME}" | sed -E 's/([^0-9a-zA-Z]+)/-/g' | awk '{print tolower($0)}')
                   docker build -t $ECR_REPOSITORY .
                   docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG
+                  docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-latest
                   docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-${GITHUB_SHA::7}
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-latest
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_TAG-${GITHUB_SHA::7}
               env:
                   ECR_REGISTRY: 942095822719.dkr.ecr.eu-west-2.amazonaws.com
