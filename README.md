@@ -4,6 +4,12 @@
 
 📢 Follow the specification covered in [CONTRIBUTING.md](CONTRIBUTING.md) 📢
 
+## API Documentation
+
+Set `API_DOCUMENTATION_ENABLED=true` in your `.env` file.
+
+Start a server, and the docs can be read at http://localhost:8080/docs/
+
 ## Dev Setup
 
 ### Database

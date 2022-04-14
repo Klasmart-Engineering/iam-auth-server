@@ -5,6 +5,8 @@ import escapeStringRegexp from 'escape-string-regexp'
 import express, { Request, Response } from 'express'
 import type http from 'http'
 import { decode } from 'jsonwebtoken'
+import swaggerUi from 'swagger-ui-express'
+import yamljs from 'yamljs'
 
 import config from './config'
 import { connectToDB, switchProfile } from './db'
@@ -64,6 +66,16 @@ export class AuthServer {
             cors<Request>(corsOptions),
             (req, res) => server.signOut(req, res)
         )
+        if (config.docs.isEnabled) {
+            const apiDocument = yamljs.load('./api.yml')
+            app.use(
+                `${config.server.routePrefix}/docs`,
+                swaggerUi.serve,
+                swaggerUi.setup(apiDocument, {
+                    customSiteTitle: 'auth-server',
+                })
+            )
+        }
         return app
     }
 

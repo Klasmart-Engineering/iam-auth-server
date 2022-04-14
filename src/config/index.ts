@@ -29,6 +29,9 @@ const config = {
     azureB2C: {
         isEnabled: process.env.AZURE_B2C_ENABLED === 'true',
     },
+    docs: {
+        isEnabled: process.env.API_DOCUMENTATION_ENABLED === 'true',
+    },
 }
 
 export default config
