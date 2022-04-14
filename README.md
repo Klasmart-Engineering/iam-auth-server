@@ -27,7 +27,7 @@ You can build the production Docker image by running the following commands
 
 ```sh
 docker build --tag auth-server:latest .
-docker run --env-file .env auth-server:latest
+docker run -p 8080:8080 --env-file .env auth-server:latest
 ```
 
 This image supports either the `AWS_SECRET_NAME` or a combination of `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` environment variables (in addition to the other required `JWT_` variables such as `JWT_ALGORITHM`)
@@ -45,5 +45,5 @@ then run
 
 ```sh
 docker build --tag auth-server:latest -f Dockerfile-With-Credentials .
-docker run --env-file .env auth-server:latest
+docker run -p 8080:8080 --env-file .env auth-server:latest
 ```
