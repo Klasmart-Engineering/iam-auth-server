@@ -4,6 +4,17 @@
 
 📢 Follow the specification covered in [CONTRIBUTING.md](CONTRIBUTING.md) 📢
 
+## Summary
+
+This project is responsible for issuing Kidsloop [JWTs](https://jwt.io/introduction), which are used for authentication with downstream APIs e.g. `user-service`.
+
+At a high level, this involves:
+
+-   extracting the payload of a 3rd party JWT from an authentication provider (e.g. [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/overview) or [AMS](https://calmisland.atlassian.net/wiki/spaces/SRE/pages/2148171898/AMS+Service)), encoding the payload in a new Kidsloop JWT, and storing these tokens in cookies
+-   encoding a specified `user_id` in new access and refresh tokens (completing the authentication journey)
+-   refreshing access tokens
+-   ending a Kidsloop session (clearing cookies)
+
 ## API Documentation
 
 Set `API_DOCUMENTATION_ENABLED=true` in your `.env` file.
