@@ -145,3 +145,37 @@ then run
 docker build --tag auth-server:latest -f Dockerfile-With-Credentials .
 docker run -p 8080:8080 --env-file .env auth-server:latest
 ```
+
+## Tests
+
+### Setup
+
+Test database settings are hardcoded [here](src/config/db.ts) to:
+
+| Setting  | Value            |
+| -------- | ---------------- |
+| Host     | localhost        |
+| Port     | 5432             |
+| Username | postgres         |
+| Password | kidsloop         |
+| Database | auth_server_test |
+
+To simplify tests (both locally and in CI), `synchronize` is enabled to avoid the need for migrations.
+
+NB: If flexibility is required in future, this could be adapted to read a `TEST_DATABASE_URL` environment variable, but this simple approach was fine for the current usecase.
+
+### Unit tests
+
+Unit tests use [Jest](https://www.jestjs.io/).
+
+To run all tests, use:
+
+```sh
+npm run test
+```
+
+To run a single test, use:
+
+```sh
+npm run test -- {partial path to file e.g. server for src/server.test.ts}
+```
