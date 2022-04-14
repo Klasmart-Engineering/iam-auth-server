@@ -179,3 +179,15 @@ To run a single test, use:
 ```sh
 npm run test -- {partial path to file e.g. server for src/server.test.ts}
 ```
+
+## CI
+
+### PRs
+
+[pr.yml](.github/workflows/pr.yml) checks the PR title follows the conventional commit format.
+
+[test-build-deploy](.github/workflows/test-build-deploy.yml) runs static checks (e.g. ESLint) and unit tests.
+
+### Push to master
+
+[test-build-deploy](.github/workflows/test-build-deploy.yml) pushes a Docker image to AWS ECR and deploys to UK Landing Zone (future Alpha replacement).
