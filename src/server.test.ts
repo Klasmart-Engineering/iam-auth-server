@@ -207,3 +207,39 @@ describe('/transfer', () => {
         })
     })
 })
+
+describe('/docs', () => {
+    describe('if enabled', () => {
+        let originalIsEnabled: boolean
+        beforeEach(() => {
+            originalIsEnabled = config.docs.isEnabled
+            config.docs.isEnabled = true
+        })
+
+        afterEach(() => {
+            config.docs.isEnabled = originalIsEnabled
+        })
+
+        it('shows the documentation', async () => {
+            const app = await AuthServer.create()
+            return request(app).get('/docs/').send().expect(200)
+        })
+    })
+
+    describe('if disabled', () => {
+        let originalIsEnabled: boolean
+        beforeEach(() => {
+            originalIsEnabled = config.docs.isEnabled
+            config.docs.isEnabled = false
+        })
+
+        afterEach(() => {
+            config.docs.isEnabled = originalIsEnabled
+        })
+
+        it('returns 404 Not Found', async () => {
+            const app = await AuthServer.create()
+            return request(app).get('/docs/').send().expect(404)
+        })
+    })
+})

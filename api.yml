@@ -1,0 +1,188 @@
+openapi: 3.0.3
+
+info:
+    title: auth-server
+    version: 1.0.1
+
+servers:
+    - url: http://localhost:8080/
+      description: Local development
+    - url: http://auth.alpha.kidsloop.net/
+      description: Alpha
+
+components:
+    schemas:
+        session-cookies:
+            type: string
+            example: access=some_JWT; Max-Age=900; Domain=alpha.kidsloop.net; Path=/; Expires=Wed, 13 Apr 2022 15:02:13 GMT, refresh=some_JWT; Max-Age=1206000; Path=/refresh; Expires=Wed, 27 Apr 2022 13:47:13 GMT; HttpOnly; Secure
+    securitySchemes:
+        bearerHeader:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+        accessCookie:
+            type: apiKey
+            in: cookie
+            name: access
+            description: Kidsloop `access_token` JWT
+        refreshCookie:
+            type: apiKey
+            in: cookie
+            name: refresh
+            description: Kidsloop `refresh_token` JWT
+
+paths:
+    /transfer:
+        post:
+            summary: Starts a Kidsloop session
+            description: Decodes a third party JWT, re-issues as Kidsloop issued, and sets `access` and `refresh` cookies
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                token:
+                                    type: string
+                                    format: JWT
+                                    description: access JWT issued by Azure B2C, "Badanamu AMS" or "Kidsloop_cn"
+
+            security:
+                - {}
+                - bearerHeader: []
+            responses:
+                '200':
+                    description: >
+                        User is partially authenticated.
+
+                        Kidsloop session created from 3rd party session (e.g. Azure B2C/AMS).
+
+                        `access` and `refresh` cookies set.
+                    headers:
+                        Set-Cookie:
+                            schema:
+                                $ref: '#/components/schemas/session-cookies'
+                '400':
+                    description: Unable to decode third party JWT/create a Kidsloop JWT
+
+    /switch:
+        get:
+            summary: Fully authenticate as the specified User
+            description: Re-sign Kidsloop `access` and `refresh` tokens with specified `user_id`, if the User belongs to the partially authenticated user.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                user_id:
+                                    type: string
+                                    format: uuid
+                            required:
+                                - user_id
+            security:
+                - accessCookie: []
+            responses:
+                '200':
+                    description: >
+                        Successfully authenticated as User with specified `user_id`.
+
+                        The new `access` cookie must be included in requests to other APIs.
+                    headers:
+                        Set-Cookie:
+                            schema:
+                                $ref: '#/components/schemas/session-cookies'
+
+                '401':
+                    description: >
+                        Unable to switch to the specified User UUID due to one of:
+
+                        - no `access` cookie
+
+                        - no `user_id` in request body
+
+                        - invalid `access` JWT signature
+
+                        - access JWT doesn't have one of email/phone/user_name claims
+
+                        - user doesn't have permission to switch to target `user_id` (i.e. it belongs to another account)
+
+                        - unexpected error creating new JWTs
+
+                        - unexpected error setting new cookies
+
+    /refresh:
+        get:
+            summary: Fetch new `access` token if expired
+            description: >
+                If `access` token is still valid, return payload of current token.
+
+                If expired, creates a new `access` and `refresh` token, set new session cookies, and return payload of new token.
+            security:
+                - accessCookie: []
+                - refreshCookie: []
+            parameters:
+                - name: redirect
+                  in: query
+                  description: URL on the same domain to redirect to
+                  schema:
+                      type: string
+                      format: uri
+
+            responses:
+                '200':
+                    description: OK
+                    headers:
+                        Set-Cookie:
+                            schema:
+                                $ref: '#/components/schemas/session-cookies'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    email:
+                                        type: string
+                                        format: email
+                                        description: Account email
+                                    phone:
+                                        type: string
+                                        format: phone
+                                        description: Account phone number
+                                    user_name:
+                                        type: string
+                                        description: Account username
+                                    exp:
+                                        type: number
+                                        format: timestamp
+                                        description: UNIX timestamp for `access` token expiration
+                                    iss:
+                                        type: string
+                                        description: JWT issuer
+                '307':
+                    description: Temporary redirect to ?redirect parameter
+                '401':
+                    description: Unable to generate a new `access` and `refresh` token
+    /signout:
+        get:
+            summary: Ends a Kidsloop session
+            description: Clear `access` and `refresh` cookies
+            responses:
+                '200':
+                    description: OK
+                    headers:
+                        Set-Cookie:
+                            schema:
+                                type: string
+                                example: access=; Domain=alpha.kidsloop.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT, refresh=; Path=/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+                '500':
+                    description: Exception clearing cookies
+
+    /.well-known/express/server-health:
+        get:
+            summary: AWS ECS/Kubernetes health check endpoint
+            description: Non-200 responses will result in a task shutdown.
+            responses:
+                '200':
+                    description: OK
