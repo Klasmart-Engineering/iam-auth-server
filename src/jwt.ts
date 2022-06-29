@@ -13,7 +13,7 @@ import jwksClient from 'jwks-rsa'
 import { isEmpty, pickBy } from 'lodash'
 
 import transferAzureB2CToken, { isAzureB2CToken } from './azureB2C'
-import config from './config'
+import globalConfig from './config'
 import {
     EmptyTokenError,
     MalformedAuthorizationHeaderError,
@@ -31,10 +31,7 @@ export class JwtService {
         return new JwtService(jwtConfig)
     }
 
-    private config: JwtConfig
-    public constructor(config: JwtConfig) {
-        this.config = config
-    }
+    public constructor(private config: JwtConfig) {}
 
     public verifyAccessToken(encodedToken: string) {
         return new Promise<any>((resolve, reject) => {
@@ -420,7 +417,7 @@ export const decodeAndStandardizeThirdPartyJWT = (
     req: Request
 ): Promise<IdToken> => {
     // Avoid unecessary JWT decoding to check issuer, and revert to original behaviour
-    if (!config.azureB2C.isEnabled) return transferToken(req.body.token)
+    if (!globalConfig.azureB2C.isEnabled) return transferToken(req.body.token)
 
     const { token, location } = extractTokenFromRequest(req)
 
