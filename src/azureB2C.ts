@@ -117,6 +117,7 @@ export const transferAzureB2CToken = async (req: Request): Promise<IdToken> => {
                     has_email: info.has_email,
                     has_phone: info.has_phone,
                     has_user_name: info.has_user_name,
+                    azure_ad_b2c_id: info.oid
                 }
                 return resolve(idToken)
             }
